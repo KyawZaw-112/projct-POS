@@ -8,8 +8,9 @@ import CounterDashboard from "./components/CounterDashboard";
 import KitchenDashboard from "./components/KitchenDashboard";
 import AddMenu from "./components/AddMenu";
 import { Button } from "antd";
-import { CartProvider } from './context/customContext';
+import { CartProvider } from "./context/customContext";
 import RegisterForm from "./components/RegisterForm";
+import Billing from "./components/Billing";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,63 +42,83 @@ const App = () => {
 
 	return (
 		<CartProvider>
-		<div className="container mx-auto p-4">
-			{isAuthenticated && (
-				<nav className="flex justify-between items-center">
-					<p
-						className="text-2xl font-bold capitalize cursor-pointer"
-						onClick={() => navigate("/")}
-					>
-						{userRole} section
-					</p>
-					<div className="flex gap-4">
-						{userRole === "counter" && (
-							<Button
-								onClick={() => navigate("/counter/add-menu")}
-							>
-								Add Menu
-							</Button>
-						)}
-						{
-							userRole === "admin" && (
-								<Button type="primary" onClick={()=>navigate("/admin/register")} >
+			<div className="container mx-auto p-4">
+				{isAuthenticated && (
+					<nav className="flex justify-between items-center">
+						<p
+							className="text-2xl font-bold capitalize cursor-pointer"
+							onClick={() => navigate("/")}
+						>
+							{userRole} section
+						</p>
+						<div className="flex gap-4">
+							{userRole === "counter" && (
+								<>
+									<Button
+										onClick={() =>
+											navigate("/counter/add-menu")
+										}
+									>
+										Add Menu
+									</Button>
+									<Button
+										onClick={() =>
+											navigate("/counter/billing")
+										}
+									>
+										Billing
+									</Button>
+								</>
+							)}
+							{userRole === "admin" && (
+								<Button
+									type="primary"
+									onClick={() => navigate("/admin/register")}
+								>
 									Register
 								</Button>
+							)}
+							<Button
+								type="primary"
+								onClick={handleLogout}
+								danger
+							>
+								Log Out
+							</Button>
+						</div>
+					</nav>
+				)}
+				<Routes>
+					<Route
+						path="/login"
+						element={
+							isAuthenticated ? (
+								<Navigate to="/" replace />
+							) : (
+								<AuthForm onLoginSuccess={handleLoginSuccess} />
 							)
 						}
-						<Button type="primary" onClick={handleLogout} danger>
-							Log Out
-						</Button>
-					</div>
-				</nav>
-			)}
-			<Routes>
-				<Route
-					path="/login"
-					element={
-						isAuthenticated ? (
-							<Navigate to="/" replace />
-						) : (
-							<AuthForm onLoginSuccess={handleLoginSuccess} />
-						)
-					}
-				/>
-				<Route path="/counter/add-menu" element={<AddMenu />} />
-				<Route path="/admin/register" element={<RegisterForm />} />
-				<Route
-					path="/"
-					element={
-						<ProtectedRoute>
-							{userRole === "admin" && <AdminDashboard />}
-							{userRole === "waiter" && <WaiterDashboard />}
-							{userRole === "counter" && <CounterDashboard />}
-							{userRole === "kitchen" && <KitchenDashboard />}
-						</ProtectedRoute>
-					}
-				/>
-				<Route path="/unauthorized" element={<h2>Unauthorized</h2>} />
-			</Routes>
-		</div>
+					/>
+					<Route path="/counter/add-menu" element={<AddMenu />} />
+					<Route path="/counter/billing" element={<Billing />} />
+					<Route path="/admin/register" element={<RegisterForm />} />
+					<Route
+						path="/"
+						element={
+							<ProtectedRoute>
+								{userRole === "admin" && <AdminDashboard />}
+								{userRole === "waiter" && <WaiterDashboard />}
+								{userRole === "counter" && <CounterDashboard />}
+								{userRole === "kitchen" && <KitchenDashboard />}
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/unauthorized"
+						element={<h2>Unauthorized</h2>}
+					/>
+				</Routes>
+			</div>
 		</CartProvider>
 	);
 };

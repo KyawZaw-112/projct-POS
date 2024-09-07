@@ -5,11 +5,12 @@ import { Button } from "antd";
 import axios from "axios";
 import { useCart } from "../context/customContext";
 import { InputNumber } from "antd";
+import Item from "antd/es/list/Item";
 
 const WaiterDashboard = () => {
 	const [menus, setMenus] = useState([]);
 	const [error, setError] = useState(null);
-	// const [order, setOrder] = useState([]);
+	const [eachItem, setEachItem] = useState([]);
 	const {
 		cart,
 		addToCart,
@@ -18,7 +19,7 @@ const WaiterDashboard = () => {
 		removeFromCart,
 		sendOrderToServer,
 		setTableNumber,
-		tableNumber
+		tableNumber,
 	} = useCart();
 	const fetchProducts = async () => {
 		try {
@@ -63,15 +64,10 @@ const WaiterDashboard = () => {
 		}
 	};
 
-
-	
 	useEffect(() => {
+		// cartFetch()
 		fetchProducts();
 	}, []);
-
-	// console.log(tableNumber);
-
-	console.log(cart);
 
 	return (
 		<section className="flex lg:flex-row flex-col gap-4 my-10">
@@ -87,72 +83,121 @@ const WaiterDashboard = () => {
 						<p className="text-gray-500">
 							price :{menu.productPrice}
 						</p>
-						<p className="text-gray-500">
-							quantity :{menu.productQuantity}
-						</p>
-						<Button type="primary" onClick={() => addToCart(menu)}>
-							add to cart
-						</Button>
+						{menu.productQuantity === 0 ? (
+							<p>out of stock</p>
+						) : (
+							<p className="text-gray-500">
+								quantity :{menu.productQuantity}
+							</p>
+						)}
+						{menu.productQuantity === 0 ? (
+							<Button
+								type="primary"
+								onClick={() => addToCart(menu)}
+								disabled
+							>
+								add to cart
+							</Button>
+						) : (
+							<Button
+								type="primary"
+								onClick={() => addToCart(menu)}
+							>
+								add to cart
+							</Button>
+						)}
 					</div>
 				))}
 			</section>
-			<>
-				<section className=" flex flex-col gap-5 md:w-1/4 w-full h-screen bg-slate-300 py-6 px-3">
-					<h2 className="text-2xl font-bold text-center">Cart</h2>
-					<div className="flex flex-row gap-2 px-3">
-						<label htmlFor="">Table Number : </label>
-						<InputNumber
-							min={1}
-							max={10}
-							changeOnWheel
-							onChange={(value) => setTableNumber(value)}
-							placeholder="Enter table number"
-						/>
-					</div>
-					{cart.map((item) => (
-						<>
+			{cart.length !== 0 && (
+				<>
+					<section className=" flex flex-col gap-5 md:w-1/4 w-full h-full bg-slate-300 py-6 px-3">
+						<h2 className="text-2xl font-bold text-center">Cart</h2>
+						<div className="flex flex-row gap-2 px-3">
+							<label htmlFor="">Table Number : </label>
+							<InputNumber
+								min={1}
+								max={10}
+								changeOnWheel
+								onChange={(value) => setTableNumber(value)}
+								placeholder="Enter table number"
+							/>
+						</div>
+						{cart.map((item) => (
 							<div
-								key={item._id}
-								className="flex md:flex-row flex-col gap-2 justify-between px-3"
+								key={item.id}
+								className="flex flex-col gap-6 mb-5 h-ful"
 							>
-								<p>{item.productName} - Quantity: {item.quantity} {item.productPrice}</p>
-								<div className=" flex flex-row gap-2">
-									<Button
-										type="primary"
-										onClick={() => decreaseQuantityAndPrice(item._id)}
-									>
-										-
-									</Button>
-									<Button
-										type="primary"
-										onClick={() =>
-											increaseQuantityAndPrice(item._id)
-										}
-									>
-										+
-									</Button>
-									<Button
-										type="primary"
-										onClick={() => removeFromCart(item._id)}
-									>
-										remove
-									</Button>
+								<div className="flex  flex-col gap-5 justify-between px-3">
+									<div className="flex flex-row justify-between">
+										<div className="flex flex-col">
+											<p className="font-bold">Name</p>
+											<p className=" capitalize tracking-wider">
+												{item.productName}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<p className="font-bold">
+												Quantity
+											</p>
+											<p className="tracking-wider capitalize text-center">
+												{item.quantity}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<p className="font-bold">Price</p>
+											<p className="tracking-wider capitalize text-center">
+												{item.productPrice *
+													item.quantity}
+											</p>
+										</div>
+									</div>
+									<div className=" flex flex-row gap-2">
+										<Button
+											type="primary"
+											onClick={() =>
+												decreaseQuantityAndPrice(
+													item._id
+												)
+											}
+										>
+											-
+										</Button>
+										<Button
+											type="primary"
+											onClick={() =>
+												increaseQuantityAndPrice(
+													item._id
+												)
+											}
+										>
+											+
+										</Button>
+										<Button
+											type="primary"
+											onClick={() =>
+												removeFromCart(item._id)
+											}
+										>
+											remove
+										</Button>
+									</div>
 								</div>
 							</div>
-						</>
-					))}
-					{cart.length > 0 && (
-						<Button
-							type="primary"
-							// onClick={() => sendOrder()}
-							onClick={() => sendOrderToServer(cart)}
-							className="mx-3 text-xl py-5 tracking-wider"
-						>
-							Order
-						</Button>
-					)}
-				</section>
-			</>
+						))}
+						{cart.length > 0 && (
+							<Button
+								type="primary"
+								// onClick={() => sendOrder()}
+								onClick={() => sendOrderToServer(cart)}
+								className="mx-3 text-xl py-5 tracking-wider"
+							>
+								Order
+							</Button>
+						)}
+					</section>
+				</>
+			)}
 		</section>
 	);
 };

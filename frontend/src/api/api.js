@@ -1,21 +1,5 @@
-import axios from "axios";
+const tableId = [1,2,3,4,5,6,7,8,9,10]
 
-const api = axios.create({
-	baseURL: "http://localhost:6060",
-});
+export const tableBtnColor = ["#248bcc","#008996","#e8a64e","#16b8f3","#c89fa5","#a6c8c7","#d3d9d1","#cfd9de","#c7b882","#c0e2e1"]
 
-api.interceptors.request.use(
-	(config) => {
-		const token = localStorage.getItem("token");
-		if (token) {
-			config.headers["Authorization"] = `Bearer ${token}`;
-		}
-		return config;
-	},
-	(error) => Promise.reject(error)
-);
-
-// Use this api instance for your requests
-api.get("/api/products")
-	.then((response) => console.log(response.data))
-	.catch((error) => console.error("Error fetching products:", error));
+export default tableId

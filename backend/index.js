@@ -165,38 +165,43 @@ const orderSchema = new mongoose.Schema({
 
 const OrderModel = mongoose.model("orders", orderSchema);
 
-app.post("/api/orders", authenticate, async (req, res) => {
-	try {
-		const { items, tableNumber } = req.body;
-		const userId = req.user.id;
-
-		if (!Array.isArray(items) || items.length === 0) {
-			return res.status(400).json({ message: "Invalid order items" });
+app.post(
+	"/api/orders",
+	authenticate,
+	(req, res, next) => {
+		if (req.user.role !== "waiter") {
+			return res
+				.status(403)
+				.json({ message: "Access denied. Waiter role required." });
 		}
+		next();
+	},
+	async (req, res) => {
+		try {
+			const { items, tableNumber } = req.body;
+			
+			const orders = items.map(item => ({
+				productName: item.productName,
+				productPrice: item.productPrice,
+				productQuantity: item.quantity,
+				table_id: tableNumber,
+				date: Date.now()
+			}));
 
-		const orders = items.map(item => ({
-			productName: item.productName,
-			productPrice: item.productPrice,
-			productQuantity: item.quantity,
-			table_id: tableNumber,
-			userId: userId,
-			date:new Date(req.body.year,req.body.month,req.body.day)
-		}));
-
-		const result = await OrderModel.insertMany(orders);
-
-		res.status(201).json({
-			message: "Orders placed successfully",
-			orders: result
-		});
-	} catch (error) {
-		console.error("Error placing orders:", error);
-		res.status(500).json({
-			message: "Failed to place orders",
-			error: error.message
-		});
+			const savedOrders = await OrderModel.insertMany(orders);
+			
+			res.status(201).json({
+				message: "Orders created successfully",
+				orders: savedOrders
+			});
+		} catch (error) {
+			console.error("Error creating orders:", error);
+			res.status(500).json({ message: "Failed to create orders", error: error.message });
+		}
 	}
-});
+);
+
+
 
 
 app.get(

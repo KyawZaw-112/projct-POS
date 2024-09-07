@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState } from "react";
-
+import axios from "axios";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
 	const [cart, setCart] = useState([]);
 	const [tableNumber, setTableNumber] = useState(null);
+	// const [error, setError] = useState(true);
 
 	const addToCart = (product) => {
 		setCart((prevCart) => {
@@ -58,29 +59,45 @@ export const CartProvider = ({ children }) => {
 	};
 
 	const sendOrderToServer = async (order) => {
+		console.log(tableNumber);
+		if (!tableNumber) {
+			// throw new Error('No table number found');
+			// setError(!error);
+			alert('No table number found');
+			return;
+		}
 		try {
-			const response = await fetch('http://localhost:6060/api/orders', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${localStorage.getItem('token')}`,
-				},
-				body: JSON.stringify({ items: cart, tableNumber: tableNumber }),
-			});
+			const token = localStorage.getItem('token');
+			if (!token) {
+				throw new Error('No authentication token found');
+			}
 
-			if (!response.ok) {
+			const response = await axios.post(
+				'http://localhost:6060/api/orders',
+				{ items: cart, tableNumber: tableNumber,date:Date.now() },
+				{
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.status !== 201) {
 				throw new Error('Failed to send order to server');
 			}
 
-			const data = await response.json();
-			console.log('Order sent successfully:', data);
+			console.log('Order sent successfully:', response.data);
 
 			// Clear the cart after successful order
 			setCart([]);
+			setTableNumber(null);
 		} catch (error) {
-			console.error('Error sending order:', error);
+			console.error('Error sending order:', error.message);
+			// You might want to handle this error in the UI
 		}
 	};
+
 
 	return (
 		<CartContext.Provider value={{ cart,setTableNumber,tableNumber, addToCart,  removeFromCart, sendOrderToServer,increaseQuantityAndPrice,decreaseQuantityAndPrice }}>
