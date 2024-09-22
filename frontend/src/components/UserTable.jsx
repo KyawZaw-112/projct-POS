@@ -3,6 +3,7 @@ import { notification } from "antd";
 import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const UserTable = () => {
 	const [users, setUsers] = useState([]);
@@ -12,6 +13,7 @@ const UserTable = () => {
 	const [isPassword, setIsPassword] = useState(true);
 	const [filterInfo, setFilterInfo] = useState({});
 	const [api, contextHolder] = notification.useNotification();
+	const navigate = useNavigate();
 
 	const openNotification = (placement, text) => {
 		api.info({
@@ -178,9 +180,13 @@ const UserTable = () => {
 	);
 
 	return (
-		<>
+		<section className="my-10 mx-4">
 			{contextHolder}
-			<Button onClick={handleClearFilters}>Clear Filters</Button>
+			<div className="w-full flex flex-row justify-between my-5">
+				<Button onClick={handleClearFilters}>Clear Filters</Button>
+				<Button onClick={() => navigate(-1)}>Back</Button>
+			</div>
+
 			<Table
 				className="mt-4"
 				columns={columns}
@@ -188,7 +194,7 @@ const UserTable = () => {
 				pagination={{ position: ["none"] }}
 				onChange={handleFilterChange}
 			/>
-		</>
+		</section>
 	);
 };
 

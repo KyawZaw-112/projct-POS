@@ -11,6 +11,7 @@ import { Button } from "antd";
 import { CartProvider } from "./context/customContext";
 import RegisterForm from "./components/RegisterForm";
 import Billing from "./components/Billing";
+import UserTable from "./components/UserTable";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -102,6 +103,7 @@ const App = () => {
 					<Route path="/counter/add-menu" element={<AddMenu />} />
 					<Route path="/counter/billing" element={<Billing />} />
 					<Route path="/admin/register" element={<RegisterForm />} />
+					<Route path="/admin/users" element={<UserTable />} />
 					<Route
 						path="/"
 						element={

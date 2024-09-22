@@ -38,69 +38,84 @@ export const CartProvider = ({ children }) => {
 
 	const decreaseQuantityAndPrice = (productId) => {
 		setCart((prevCart) => {
-			return prevCart.map((item) => {
-				if (item._id === productId && item.quantity > 1) {
-					const newQuantity = item.quantity - 1;
-					const newPrice = (item.price / item.quantity) * newQuantity;
-					return { ...item, quantity: newQuantity, price: newPrice };
-				}
-				return item;
-			}).filter((item) => item.quantity > 0);
+			return prevCart
+				.map((item) => {
+					if (item._id === productId && item.quantity > 1) {
+						const newQuantity = item.quantity - 1;
+						const newPrice =
+							(item.price / item.quantity) * newQuantity;
+						return {
+							...item,
+							quantity: newQuantity,
+							price: newPrice,
+						};
+					}
+					return item;
+				})
+				.filter((item) => item.quantity > 0);
 		});
 	};
 
-
-
-    const removeFromCart = (productId) => {
+	const removeFromCart = (productId) => {
 		setCart((prevCart) => {
-			const updatedCart = prevCart.filter((item) => item._id !== productId);
+			const updatedCart = prevCart.filter(
+				(item) => item._id !== productId
+			);
 			return updatedCart;
 		});
 	};
 
-	const sendOrderToServer = async (order) => {
-		console.log(tableNumber);
+	const sendOrderToServer = async () => {
 		if (!tableNumber) {
-			// throw new Error('No table number found');
-			// setError(!error);
-			alert('No table number found');
+			// console.error("No table number provided");
+			alert("Please select table number ");
 			return;
 		}
-		try {
-			const token = localStorage.getItem('token');
-			if (!token) {
-				throw new Error('No authentication token found');
-			}
+		const orders = cart.map((item) => ({
+			// id: item.id,
+			orderName: item.productName,
+			orderQuantity: item.productQuantity,
+			orderPrice: item.productPrice,
+		}));
 
+		// console.log(orders, tableNumber);
+
+		if (orders.length === 0) {
+			console.error("Order cannot be empty");/*  */
+			return;
+		}
+		const token = localStorage.getItem("token");
+		try {
+			if (!token) {
+				throw new Error("No authentication token found");
+			}
 			const response = await axios.post(
-				'http://localhost:6060/api/orders',
-				{ items: cart, tableNumber: tableNumber,date:Date.now() },
+				"http://localhost:6060/api/orders",
+				{ orders, tableNumber: tableNumber, date: Date.now() },
 				{
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`,
-					},
+					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
-
-			if (response.status !== 201) {
-				throw new Error('Failed to send order to server');
-			}
-
-			console.log('Order sent successfully:', response.data);
-
-			// Clear the cart after successful order
-			setCart([]);
-			setTableNumber(null);
+			const data = response.data;
+			console.log(data);
 		} catch (error) {
-			console.error('Error sending order:', error.message);
-			// You might want to handle this error in the UI
+			console.error("Error sending order to server:", error);
 		}
 	};
 
-
 	return (
-		<CartContext.Provider value={{ cart,setTableNumber,tableNumber, addToCart,  removeFromCart, sendOrderToServer,increaseQuantityAndPrice,decreaseQuantityAndPrice }}>
+		<CartContext.Provider
+			value={{
+				cart,
+				setTableNumber,
+				tableNumber,
+				addToCart,
+				removeFromCart,
+				sendOrderToServer,
+				increaseQuantityAndPrice,
+				decreaseQuantityAndPrice,
+			}}
+		>
 			{children}
 		</CartContext.Provider>
 	);

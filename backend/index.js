@@ -2,6 +2,12 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import {
+	userSchema,
+	menuSchema,
+	orderSchema,
+	KitchenSchema,
+} from "./schema/schema.js";
 const app = express();
 
 app.use(express.json());
@@ -16,38 +22,13 @@ mongoose
 		console.log(err);
 	});
 
-const userSchema = new mongoose.Schema({
-	username: String,
-	password: String,
-	role: {
-		type: String,
-		enum: ["admin", "counter", "waiter", "kitchen"],
-		required: true,
-	},
-});
-
 const UserModel = mongoose.model("users", userSchema);
 
-const menuSchema = new mongoose.Schema({
-	productName: String,
-	productPrice: Number,
-	productDescription: String,
-	productImage: String,
-	productCategory: String,
-	productAvailability: Boolean,
-	productQuantity: Number,
-	productPrice: Number,
-	productStatus: String,
-	productDate: Date,
-	productTime: Date,
-	productLocation: String,
-	productRating: Number,
-	// productReviews: [String],
-	// productTags: [String],
-	// productImages: [String],
-});
-
 const MenuModel = mongoose.model("menu", menuSchema);
+
+const OrderModel = mongoose.model("orders", orderSchema);
+
+const KitchenModel = mongoose.model("kitchen", KitchenSchema);
 
 // Login route
 app.post("/api/login", async (req, res) => {
@@ -62,7 +43,7 @@ app.post("/api/login", async (req, res) => {
 		const token = jwt.sign(
 			{ id: user._id, role: user.role },
 			"your_jwt_secret",
-			{ expiresIn: "24h" }
+			{ expiresIn: "10h" }
 		);
 		res.json({ token, role: user.role });
 	} catch (error) {
@@ -120,6 +101,7 @@ const authenticate = (req, res, next) => {
 // Make sure this middleware is applied correctly
 app.use(authenticate);
 
+//admin, counter, kitchen, waiter routes
 app.get("/api/admin", checkRole(["admin"]), (req, res) => {
 	res.json({ message: "Welcome Admin" });
 });
@@ -136,6 +118,7 @@ app.get("/api/kitchen", checkRole(["kitchen"]), (req, res) => {
 	res.json({ message: "Welcome Kitchen Staff" });
 });
 
+//waiter fetch menu data
 app.get(
 	"/api/products",
 	authenticate,
@@ -154,21 +137,50 @@ app.get(
 	}
 );
 
-const orderSchema = new mongoose.Schema({
-	productName: String,
-	productPrice: Number,
-	productQuantity: Number,
-	table_id: Number,
-	date:Number,
-	// status: String
-});
+//waiter post the order data
+// app.post(
+// 	"/api/orders",
+// 	authenticate,
+// 	(req, res, next) => {
+// 		if (req.user.role !== "waiter" && req.user.role === "admin") {
+// 			return res
+// 				.status(403)
+// 				.json({ message: "Access denied. Waiter role required." });
+// 		}
+// 		next();
+// 	},
+// 	async (req, res) => {
+// 		try {
+// 			const { items, tableNumber } = req.body;
 
-const OrderModel = mongoose.model("orders", orderSchema);
+// 			const orders = items.map((item) => ({
+// 				productName: item.productName,
+// 				productPrice: item.productPrice,
+// 				productQuantity: item.quantity,
+// 				table_id: tableNumber,
+// 				date: Date.now(),
+// 			}));
+
+// 			const savedOrders = await OrderModel.insertMany(orders);
+
+// 			res.status(201).json({
+// 				message: "Orders created successfully",
+// 				orders: savedOrders,
+// 			});
+// 		} catch (error) {
+// 			console.error("Error creating orders:", error);
+// 			res.status(500).json({
+// 				message: "Failed to create orders",
+// 				error: error.message,
+// 			});
+// 		}
+// 	}
+// );
 
 app.post(
 	"/api/orders",
 	authenticate,
-	(req, res, next) => {
+	async (req, res, next) => {
 		if (req.user.role !== "waiter") {
 			return res
 				.status(403)
@@ -177,41 +189,48 @@ app.post(
 		next();
 	},
 	async (req, res) => {
+		if (!req.body.orders || req.body.orders.length === 0) {
+			return res.status(400).json({ error: "Order cannot be empty" });
+		}
 		try {
-			const { items, tableNumber } = req.body;
-			
-			const orders = items.map(item => ({
-				productName: item.productName,
-				productPrice: item.productPrice,
-				productQuantity: item.quantity,
-				table_id: tableNumber,
-				date: Date.now()
-			}));
+			const { orders,tableNumber } = req.body;
+			console.log(req.body);
+			// Validate the input data
+			if (!orders ) {
+				return res.status(400).json({ error: "Invalid request data" });
+			}
 
-			const savedOrders = await OrderModel.insertMany(orders);
-			
-			res.status(201).json({
-				message: "Orders created successfully",
-				orders: savedOrders
+			// Process the orders array
+			const processedOrders = orders.map((item) => {
+				// You can perform any additional processing or validation here
+				return {
+					orderName: item.orderName,
+					orderPrice: item.orderPrice,
+					orderQuantity: item.orderQuantity,
+					date:Date.now(),
+					table_id: tableNumber,
+				};
 			});
+			
+			const saveOrder = await OrderModel.insertMany(processedOrders)
+
+			res.status(201).json({processedOrders:saveOrder,message:'hee'});
 		} catch (error) {
-			console.error("Error creating orders:", error);
-			res.status(500).json({ message: "Failed to create orders", error: error.message });
+			console.error("Error creating order:", error);
+			// res.status(404).json({ message: "Error creating order})
+			res.status(500).json({ error: "Failed to create order" });
 		}
 	}
 );
-
-
-
-
+//counter fetch order data
 app.get(
 	"/api/orders",
 	authenticate,
-	(req, res, next) => {
-		if (req.user.role !== "counter") {
-			return res
-				.status(403)
-				.json({ message: "Access denied. Waiter role required." });
+	async (req, res, next) => {
+		if (req.user.role !== "counter" && req.user.role !== "admin") {
+			return res.status(403).json({
+				message: "Access denied. counter or admin role required.",
+			});
 		}
 		next();
 	},
@@ -222,16 +241,21 @@ app.get(
 	}
 );
 
+//admin fetch user data
 app.get("/api/users", authenticate, async (req, res) => {
 	try {
 		const users = await UserModel.find();
 		res.json(users);
 	} catch (error) {
 		console.error("Error fetching users:", error);
-		res.status(500).json({ message: "Failed to fetch users", error: error.message });
+		res.status(500).json({
+			message: "Failed to fetch users",
+			error: error.message,
+		});
 	}
 });
 
+//admin delete user
 app.delete("/api/users/:id", authenticate, async (req, res) => {
 	try {
 		const userId = req.params.id;
@@ -239,10 +263,14 @@ app.delete("/api/users/:id", authenticate, async (req, res) => {
 		res.status(200).json({ message: "User deleted successfully" });
 	} catch (error) {
 		console.error("Error deleting user:", error);
-		res.status(500).json({ message: "Failed to hi user", error: error.message });
+		res.status(500).json({
+			message: "Failed to hi user",
+			error: error.message,
+		});
 	}
 });
 
+//counter post the new menu
 app.post("/api/products", authenticate, async (req, res, next) => {
 	if (req.user.role !== "counter") {
 		return res
@@ -251,10 +279,16 @@ app.post("/api/products", authenticate, async (req, res, next) => {
 	}
 
 	try {
-		const { productName, productPrice, productQuantity } = req.body;
+		const { productName, productPrice, productQuantity, productCategory } =
+			req.body;
 
 		// Validate input
-		if (!productName || !productPrice || !productQuantity) {
+		if (
+			!productName ||
+			!productPrice ||
+			!productQuantity ||
+			!productCategory
+		) {
 			return res.status(400).json({ message: "All fields are required" });
 		}
 
@@ -269,6 +303,7 @@ app.post("/api/products", authenticate, async (req, res, next) => {
 			productName,
 			productPrice: Number(productPrice),
 			productQuantity: Number(productQuantity),
+			productCategory,
 		});
 
 		await newProduct.save();
@@ -278,8 +313,82 @@ app.post("/api/products", authenticate, async (req, res, next) => {
 			product: newProduct,
 		});
 	} catch (error) {
-		console.error("Error adding product:", error);
+		console.error("Error adding:", error);
 		next(error); // Pass error to error handling middleware
+	}
+});
+
+app.delete("/api/selected-table-orders", async (req, res) => {
+	try {
+		// Delete selected table orders from the database
+		await SelectedTableOrder.deleteMany({}); // Assuming you're using Mongoose
+		res.status(200).send({
+			message: "Selected table orders deleted successfully",
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(500).send({
+			message: "Error deleting hi selected table orders",
+		});
+	}
+});
+
+//counter post the kitchen data
+app.post("/api/orders/confirm", authenticate, async (req, res, next) => {
+	if (req.user.role !== "counter") {
+		return res
+			.status(403)
+			.json({ message: "Access denied. Counter role required." });
+	}
+
+	try {
+		const { table_id, productName, productQuantity } = req.body;
+		console.log("Received orders for confirmation:", {
+			table_id,
+			productName,
+			productQuantity,
+		});
+
+		const confirmedOrders = new KitchenModel({
+			table_id,
+			productName,
+			productQuantity,
+		});
+
+		await confirmedOrders.save();
+
+		console.log("Confirmed orders:", confirmedOrders);
+
+		res.status(200).json({
+			message: "Orders processed",
+			confirmedCount: confirmedOrders.length,
+			orders: confirmedOrders,
+		});
+	} catch (error) {
+		console.error("Error in order confirmation route:", error);
+		res.status(500).json({
+			message: "Failed to process orders",
+			error: error.message,
+		});
+	}
+});
+
+//kitchen fetch order data
+app.get("/api/orders", authenticate, async (req, res, next) => {
+	if (req.user.role !== "counter") {
+		return res
+			.status(403)
+			.json({ message: "Access denied. Kitchen role required." });
+	}
+	try {
+		const orders = await OrderModel.find();
+		res.json(orders);
+	} catch (error) {
+		console.error("Error fetching orders:", error);
+		res.status(500).json({
+			message: "Failed to fetch orders",
+			error: error.message,
+		});
 	}
 });
 
