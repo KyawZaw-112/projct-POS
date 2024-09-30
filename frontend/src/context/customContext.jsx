@@ -1,10 +1,22 @@
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
 const CartContext = createContext();
+import { notification } from "antd";
 
 export const CartProvider = ({ children }) => {
 	const [cart, setCart] = useState([]);
 	const [tableNumber, setTableNumber] = useState(null);
+	const [api, contextHolder] = notification.useNotification();
+
+	const openNotifications = (text, placement) => {
+		api.info({
+			message: `Notification`,
+			description: `${text}`,
+			placement,
+		});
+	};
+
+	
 	// const [error, setError] = useState(true);
 
 	const addToCart = (product) => {
@@ -67,12 +79,10 @@ export const CartProvider = ({ children }) => {
 
 	const sendOrderToServer = async () => {
 		if (!tableNumber) {
-			// console.error("No table number provided");
 			alert("Please select table number ");
 			return;
 		}
 		const orders = cart.map((item) => ({
-			// id: item.id,
 			orderName: item.productName,
 			orderQuantity: item.productQuantity,
 			orderPrice: item.productPrice,
@@ -96,8 +106,6 @@ export const CartProvider = ({ children }) => {
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
-			const data = response.data;
-			console.log(data);
 		} catch (error) {
 			console.error("Error sending order to server:", error);
 		}
@@ -114,6 +122,7 @@ export const CartProvider = ({ children }) => {
 				sendOrderToServer,
 				increaseQuantityAndPrice,
 				decreaseQuantityAndPrice,
+				contextHolder,
 			}}
 		>
 			{children}

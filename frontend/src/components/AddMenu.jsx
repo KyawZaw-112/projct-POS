@@ -37,6 +37,7 @@ const AddMenu = () => {
 	const [productQuantity, setProductQuantity] = useState("");
 	const [error, setError] = useState(null);
 	const [productCategory, setProductCategory] = useState("");
+	const [file, setFile] = useState();
 
 	const [api, contextHolder] = notification.useNotification();
 
@@ -82,11 +83,14 @@ const AddMenu = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		const formData = new FormData();
+		formData.append('file',file)
 		try {
 			const token = localStorage.getItem("token");
 			if (!token) {
 				throw new Error("No authentication token found");
 			}
+			// console.log(file);
 			const response = await axios.post(
 				"http://localhost:6060/api/products",
 				{
@@ -94,25 +98,24 @@ const AddMenu = () => {
 					productPrice,
 					productQuantity,
 					productCategory,
+					formData
 				},
 				{
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
-			
-			console.log(response.data);
-
+			console.log(formData,file);
+			// openNotification("New product added successfully", "top");
 			if (response.status === 201) {
 				openNotification("Product added successfully", "top");
 				console.log("Product added successfully:", response.data);
 				setProductName("");
 				setProductPrice("");
 				setProductQuantity("");
-				setProductCategory("");
+				setProductCategory(null);
+				setFile(null);
 				setError(null);
 			}
-
-		
 		} catch (err) {
 			openNotification("Error adding product", "top");
 			console.error("Error adding product:", err);
@@ -137,9 +140,15 @@ const AddMenu = () => {
 		}
 	};
 
-
-	console.log(productName, productPrice, productQuantity,"Prodyvy :", productCategory);
-
+	// console.log(
+	// 	productName,
+	// 	productPrice,
+	// 	productQuantity,
+	// 	"Prodyvy :",
+	// 	productCategory,
+	// 	"file",
+	// 	file
+	// );
 
 	return (
 		<div className="flex justify-center items-center h-[80vh] ">
@@ -147,31 +156,38 @@ const AddMenu = () => {
 			<form className="w-1/3" onSubmit={handleSubmit}>
 				{/* <legend>Add Menu</legend> */}
 				<Flex vertical gap={13}>
-				<h1 className="text-2xl font-bold text-center">Add Menu</h1>
-					<input
+					<h1 className="text-2xl font-bold text-center">Add Menu</h1>
+					<Input
 						value={productName}
 						onChange={(e) => setProductName(e.target.value)}
 						placeholder="Product Name"
 					/>
-					<input
+					<Input
 						value={productPrice}
 						onChange={(e) => setProductPrice(e.target.value)}
 						placeholder="Product Price"
 					/>
-					<input
+					<Input
 						value={productQuantity}
 						onChange={(e) => setProductQuantity(e.target.value)}
 						placeholder="Product Quantity"
 					/>
+
 					<select
 						placeholder="Select Category"
 						onChange={(e) => setProductCategory(e.target.value)}
+						className="border px-3 py-3 rounded-lg"
 					>
 						<option value="Food">Food</option>
 						<option value="Drink">Drink</option>
 						<option value="Dessert">Dessert</option>
 						<option value="Other">Other</option>
 					</select>
+					<input
+						type="file"
+						id=""
+						onChange={(e) => setFile(e.target.files[0])}
+					/>
 					<Button type="primary" htmlType="submit">
 						Add Product
 					</Button>

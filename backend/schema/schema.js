@@ -31,12 +31,13 @@ export const menuSchema = new mongoose.Schema({
 });
 
 export const orderSchema = new mongoose.Schema({
-	orderName: String,
-	orderPrice: Number,
-	orderQuantity: Number,
+	orders: [{
+		orderName: String,
+		orderPrice: Number,
+		orderQuantity: Number,
+	}],
 	table_id: Number,
-	date:Number,
-	// status: String
+	date: Number,
 });
 
 export const KitchenSchema = new mongoose.Schema({

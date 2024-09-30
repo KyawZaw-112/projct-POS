@@ -27,7 +27,9 @@ const WaiterDashboard = () => {
 		sendOrderToServer,
 		setTableNumber,
 		tableNumber,
+		contextHolder,
 	} = useCart();
+
 
 	const fetchProducts = async () => {
 		try {
@@ -77,10 +79,11 @@ const WaiterDashboard = () => {
 		fetchProducts();
 	}, []);
 
-	// console.log(cart);
+	// console.log(contextHolder);
 
 	return (
 		<>
+		{contextHolder}
 			{error ? (
 				<InternalAuth />
 			) : (

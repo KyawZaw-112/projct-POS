@@ -4,6 +4,9 @@ import { Button, Card } from "antd";
 import tableId, { tableBtnColor } from "../api/api";
 import InternalAuth from "./InternalAuth";
 import BasicTable from "./ui/Table";
+
+
+// import {useNavigation} from "react-router-dom"
 const CounterDashboard = () => {
 	const [orders, setOrders] = useState([]);
 	const [error, setError] = useState(null);
@@ -11,6 +14,9 @@ const CounterDashboard = () => {
 	const [selectedTable, setSelectedTable] = useState(null);
 	const [selectedTableOrders, setSelectedTableOrders] = useState([]);
 	const [authentication, setAuthentication] = useState(true);
+	// const [api, contextHolder] = notification.useNotification();
+
+	// const navi = useNavigation()
 	const fetchOrders = async () => {
 		try {
 			const token = localStorage.getItem("token");
@@ -24,6 +30,7 @@ const CounterDashboard = () => {
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
+			// alert("success")
 
 			if (!response.data) {
 				throw new Error("No data received from server");
@@ -46,6 +53,7 @@ const CounterDashboard = () => {
 				// console.log(authenticationError);
 
 				setAuthentication(false);
+				// navi("/login")
 			} else if (err.request) {
 				// The request was made but no response was received
 				console.error("Error request:", err.request);
@@ -58,79 +66,16 @@ const CounterDashboard = () => {
 		}
 	};
 
-	const confirmOrder = async () => {
-		try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				throw new Error("No authentication token found");
-			}
 
-			// Prepare the order data
-			const orderData = selectedTableOrders.map((order) => ({
-				orderId: order._id,
-				tableId: order.table_id,
-				productName: order.productName,
-				productQuantity: order.productQuantity,
-				// productPrice: order.productPrice,
-			}));
-
-			const response = await axios.post(
-				`http://localhost:6060/api/orders/confirm`,
-				{ orders: orderData },
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				}
-			);
-
-			if (response.status === 200) {
-				console.log("Orders confirmed:", response.data);
-				console.log("Orders:", orderData);
-				// Clear the selected table orders
-				setSelectedTableOrders([]);
-				// Refresh the orders list
-				fetchOrders();
-			} else {
-				throw new Error("Failed to confirm orders");
-			}
-		} catch (err) {
-			console.error("Error confirming orders:", err);
-			setError(`Error confirming orders: ${err.message}`);
-		}
-	};
-
-
-	
-	const deleteSelectedTableOrders = async () => {
-		try {
-		  const token = localStorage.getItem('token');
-		  if (!token) {
-			throw new Error('No authentication token found');
-		  }
-	  
-		  const response = await axios.delete('http://localhost:6060/api/selected-table-orders', {
-			headers: { Authorization: `Bearer ${token}` },
-		  });
-	  
-		  if (response.status === 200) {
-			console.log('Selected table orders deleted successfully');
-			// Update the frontend state to reflect the deletion
-			setSelectedTableOrders([]);
-		  } else {
-			throw new Error('Failed to delete selected table orders');
-		  }
-		} catch (err) {
-		  console.error(err);
-		  setError(`Error deleting selected table orders: ${err.message}`);
-		}
-	  };
 
 	useEffect(() => {
 		fetchOrders();
 	}, []);
-
+	
 	// const tableOrders = orders.filter(order=> console.log(order))
 	// console.log(selectedTableOrders[0].date);
-	console.log(selectedTableOrders);
+	// console.log(selectedTableOrders.id);
+	// console.log(orders)
 	return (
 		<>
 			{authentication ? (
@@ -173,11 +118,7 @@ const CounterDashboard = () => {
 							</h1>
 							{selectedTableOrders &&
 							selectedTableOrders.length > 0 ? (
-								<div className="mt-4 border-2 border-gray-300 p-4 w-full">
-									<h2 className="text-2xl font-semibold mb-2">
-										Orders for Selected Table{" "}
-										{selectedTableOrders[0].table_id}
-									</h2>
+								<div className="mt-4 p-4 w-full">
 									<p>
 										Date:{" "}
 										{new Date(
@@ -185,18 +126,7 @@ const CounterDashboard = () => {
 										).toLocaleString()}
 									</p>
 									<BasicTable orders={selectedTableOrders} />
-									<div className="flex flex-row my-4 justify-between items-center">
-										<Button
-											type="primary"
-											onClick={confirmOrder}
-											// className="mt-4"
-										>
-											Confirm Order
-										</Button>
-										<Button type="primary" onClick={deleteSelectedTableOrders} danger>
-											Order Cancle
-										</Button>
-									</div>
+									
 								</div>
 							) : (
 								<p>Select Table Number</p>
