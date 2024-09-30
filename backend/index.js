@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
 import {
 	userSchema,
 	menuSchema,
@@ -30,7 +32,17 @@ const OrderModel = mongoose.model("orders", orderSchema);
 
 const KitchenModel = mongoose.model("kitchen", KitchenSchema);
 
-// Login route
+const storage = multer.diskStorage({
+	destination: (req, file, callback) => {
+		callback(null, "public/menu_images");
+	},
+	filename: (req, file, callback) => {
+		callback(null, `${Date.now()}_{$file.originalname}`);
+	},
+});
+
+const upload = multer({ storage: storage });
+
 app.post("/api/login", async (req, res) => {
 	const { username, password } = req.body;
 	try {
@@ -51,7 +63,7 @@ app.post("/api/login", async (req, res) => {
 		console.log(error);
 	}
 });
-// Registration route
+
 app.post("/api/register", async (req, res) => {
 	const { username, password, role } = req.body;
 	try {
@@ -81,7 +93,6 @@ const checkRole = (roles) => (req, res, next) => {
 	}
 };
 
-// Authentication middleware
 const authenticate = (req, res, next) => {
 	const token = req.headers.authorization?.split(" ")[1]; // Bearer TOKEN
 	if (!token) {
@@ -98,10 +109,8 @@ const authenticate = (req, res, next) => {
 	});
 };
 
-// Make sure this middleware is applied correctly
 app.use(authenticate);
 
-//admin, counter, kitchen, waiter routes
 app.get("/api/admin", checkRole(["admin"]), (req, res) => {
 	res.json({ message: "Welcome Admin" });
 });
@@ -137,46 +146,6 @@ app.get(
 	}
 );
 
-//waiter post the order data
-// app.post(
-// 	"/api/orders",
-// 	authenticate,
-// 	(req, res, next) => {
-// 		if (req.user.role !== "waiter" && req.user.role === "admin") {
-// 			return res
-// 				.status(403)
-// 				.json({ message: "Access denied. Waiter role required." });
-// 		}
-// 		next();
-// 	},
-// 	async (req, res) => {
-// 		try {
-// 			const { items, tableNumber } = req.body;
-
-// 			const orders = items.map((item) => ({
-// 				productName: item.productName,
-// 				productPrice: item.productPrice,
-// 				productQuantity: item.quantity,
-// 				table_id: tableNumber,
-// 				date: Date.now(),
-// 			}));
-
-// 			const savedOrders = await OrderModel.insertMany(orders);
-
-// 			res.status(201).json({
-// 				message: "Orders created successfully",
-// 				orders: savedOrders,
-// 			});
-// 		} catch (error) {
-// 			console.error("Error creating orders:", error);
-// 			res.status(500).json({
-// 				message: "Failed to create orders",
-// 				error: error.message,
-// 			});
-// 		}
-// 	}
-// );
-
 app.post(
 	"/api/orders",
 	authenticate,
@@ -193,28 +162,26 @@ app.post(
 			return res.status(400).json({ error: "Order cannot be empty" });
 		}
 		try {
-			const { orders,tableNumber } = req.body;
+			const { orders, tableNumber } = req.body;
 			console.log(req.body);
+			const existingOrder = await OrderModel.findOne({ table_id: tableNumber });
 			// Validate the input data
-			if (!orders ) {
+			if (!orders) {
 				return res.status(400).json({ error: "Invalid request data" });
 			}
-
-			// Process the orders array
-			const processedOrders = orders.map((item) => {
-				// You can perform any additional processing or validation here
-				return {
-					orderName: item.orderName,
-					orderPrice: item.orderPrice,
-					orderQuantity: item.orderQuantity,
-					date:Date.now(),
-					table_id: tableNumber,
-				};
-			});
 			
-			const saveOrder = await OrderModel.insertMany(processedOrders)
-
-			res.status(201).json({processedOrders:saveOrder,message:'hee'});
+			const orderDocuments = orders.map((order) => ({
+				orders: orders,
+				table_id: tableNumber,
+				date: Date.now(),
+			}));
+			// await order.insertMany();
+			await OrderModel.insertMany(orderDocuments);
+			if (existingOrder) {
+				existingOrder.orders = [...existingOrder.orders, ...orders];
+				await existingOrder.save();
+			}
+			res.status(200).json({ message: "Orders created successfully" });
 		} catch (error) {
 			console.error("Error creating order:", error);
 			// res.status(404).json({ message: "Error creating order})
@@ -222,12 +189,15 @@ app.post(
 		}
 	}
 );
-//counter fetch order data
+
 app.get(
 	"/api/orders",
 	authenticate,
 	async (req, res, next) => {
-		if (req.user.role !== "counter" && req.user.role !== "admin") {
+		// const admin = req.user.role
+		const counter = req.user.role;
+
+		if (counter !== "counter") {
 			return res.status(403).json({
 				message: "Access denied. counter or admin role required.",
 			});
@@ -271,67 +241,103 @@ app.delete("/api/users/:id", authenticate, async (req, res) => {
 });
 
 //counter post the new menu
-app.post("/api/products", authenticate, async (req, res, next) => {
-	if (req.user.role !== "counter") {
-		return res
-			.status(403)
-			.json({ message: "Access denied. Counter role required." });
-	}
-
-	try {
-		const { productName, productPrice, productQuantity, productCategory } =
-			req.body;
-
-		// Validate input
-		if (
-			!productName ||
-			!productPrice ||
-			!productQuantity ||
-			!productCategory
-		) {
-			return res.status(400).json({ message: "All fields are required" });
-		}
-
-		// Ensure price and quantity are numbers
-		if (isNaN(productPrice) || isNaN(productQuantity)) {
+app.post(
+	"/api/products",
+	upload.single("file"),
+	authenticate,
+	async (req, res, next) => {
+		if (req.user.role !== "counter") {
 			return res
-				.status(400)
-				.json({ message: "Price and quantity must be numbers" });
+				.status(403)
+				.json({ message: "Access denied. Counter role required." });
 		}
 
-		const newProduct = new MenuModel({
-			productName,
-			productPrice: Number(productPrice),
-			productQuantity: Number(productQuantity),
-			productCategory,
-		});
+		try {
+			const {
+				productName,
+				productPrice,
+				productQuantity,
+				productCategory,
+			} = req.body;
 
-		await newProduct.save();
+			// const {productImage} = req.file
 
-		res.status(201).json({
-			message: "Product added successfully",
-			product: newProduct,
-		});
-	} catch (error) {
-		console.error("Error adding:", error);
-		next(error); // Pass error to error handling middleware
+			console.log(req.file);
+
+			// Validate input
+			if (
+				!productName ||
+				!productPrice ||
+				!productQuantity ||
+				!productCategory
+			) {
+				return res
+					.status(400)
+					.json({ message: "All fields are required" });
+			}
+
+			// Ensure price and quantity are numbers
+			if (isNaN(productPrice) || isNaN(productQuantity)) {
+				return res
+					.status(400)
+					.json({ message: "Price and quantity must be numbers" });
+			}
+
+			const newProduct = new MenuModel({
+				productName,
+				productPrice: Number(productPrice),
+				productQuantity: Number(productQuantity),
+				productCategory,
+			});
+
+			await newProduct.save();
+
+			res.status(201).json({
+				message: "Product added successfully",
+				product: newProduct,
+			});
+			// console.log(productImage);
+		} catch (error) {
+			console.error("Error adding:", error);
+			next(error); // Pass error to error handling middleware
+		}
 	}
-});
+);
 
-app.delete("/api/selected-table-orders", async (req, res) => {
-	try {
-		// Delete selected table orders from the database
-		await SelectedTableOrder.deleteMany({}); // Assuming you're using Mongoose
-		res.status(200).send({
-			message: "Selected table orders deleted successfully",
-		});
-	} catch (err) {
-		console.error(err);
-		res.status(500).send({
-			message: "Error deleting hi selected table orders",
-		});
+app.delete(
+	"/api/selected-table-orders",
+	authenticate,
+	async (req, res, next) => {
+		if (req.user.role !== "counter") {
+			return res
+				.status(403)
+				.json({ message: "Access denied. Counter role required." });
+		}
+		try {
+			const { orderId } = req.body;
+			console.log("Received order ID for deletion:", orderId);
+
+			const deletedOrder = await OrderModel.findByIdAndDelete(orderId);
+
+			if (!deletedOrder) {
+				return res.status(404).json({ message: "Order not found" });
+			}
+
+			console.log("Deleted order:", deletedOrder);
+
+			res.status(200).json({
+				message: "Order deleted successfully",
+				deletedOrder,
+			});
+		} catch (error) {
+			console.error("Error in order deletion route:", error);
+			res.status(500).json({
+				message: "Failed to delete order",
+				error: error.message,
+			});
+		}
 	}
-});
+);
 
 //counter post the kitchen data
 app.post("/api/orders/confirm", authenticate, async (req, res, next) => {
@@ -340,6 +346,7 @@ app.post("/api/orders/confirm", authenticate, async (req, res, next) => {
 			.status(403)
 			.json({ message: "Access denied. Counter role required." });
 	}
+	next();
 
 	try {
 		const { table_id, productName, productQuantity } = req.body;
@@ -380,6 +387,7 @@ app.get("/api/orders", authenticate, async (req, res, next) => {
 			.status(403)
 			.json({ message: "Access denied. Kitchen role required." });
 	}
+	next();
 	try {
 		const orders = await OrderModel.find();
 		res.json(orders);
