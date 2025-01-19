@@ -22,6 +22,8 @@ export default function BasicTable({ orders }) {
 		});
 	};
 
+	// console.log(orders[0]._id);
+
 	const deleteSelectedTableOrders = async (orderId) => {
 		try {
 			const token = localStorage.getItem("token");
@@ -52,14 +54,66 @@ export default function BasicTable({ orders }) {
 		console.log(orderId);
 	};
 	const totalPrice = orders[0].orders.reduce(
-		(sum, order) => sum + order.orderQuantity * order.orderPrice,
+		(sum, order) => sum + order.quantity * order.orderPrice,
 		0
 	);
 
-	// let orderName = orders.map(order=>order.map(item => item))
+	const confirmOrders = async() => {
+		const token = localStorage.getItem("token");
+		const order_data = orders.map((order) => {
+			return order;
+		});
+		if(!token) {
+			throw new Error("No authentication token found");
+			// openNotification("You're not authenticated to order","top");
+		}
+		try{
 
-	console.log(orders);
+			const response = await axios.post(
+				"http://localhost:6060/api/counter",
+				{
+                    order_data: order_data,
+                },
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			)
+            openNotification(`success`,"top");
+		}catch(e){
+			console.error(e)
+            openNotification(`${e}`,"top");
+		}
 
+	};
+
+	// const confirmOrders = async () => {
+	// 	const token = localStorage.getItem("token");
+	// 	const order_data = orders.map((order) => {
+	// 		return order;
+	// 	});
+	// 	if (!token) {
+	// 		throw new Error("No authentication token found");
+	// 	}
+	// 	try {
+	// 		const response = await axios.post(
+	// 			"http://localhost:6060/api/kitchen-data",
+	// 			{
+	// 				headers: { Authorization: `Bearer ${token}` },
+	// 				data: order_data,
+	// 			}
+	// 		);
+	// 		openNotification("Order confirmed successfully", "top");
+	// 	} catch (e) {
+	// 		if (e.response && e.response.status === 401) {
+	// 			openNotification("Unauthorized: Please log in again", "top"); // Handle 401 error
+	// 		} else {
+	// 			console.error(e);
+	// 			openNotification(`${e}`, "top");
+	// 		}
+	// 	}
+	// };
+
+	
 	return (
 		<>
 			{contextHolder}
@@ -75,6 +129,7 @@ export default function BasicTable({ orders }) {
 							<TableCell align="right">Quantity</TableCell>
 							<TableCell align="right">Price</TableCell>
 							<TableCell align="right">Total Price</TableCell>
+							<TableCell align="right">Note</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -96,13 +151,16 @@ export default function BasicTable({ orders }) {
 										{item.orderName}
 									</TableCell>
 									<TableCell align="right">
-										{item.orderQuantity}
+										{item.quantity}
 									</TableCell>
 									<TableCell align="right">
 										{item.orderPrice}
 									</TableCell>
 									<TableCell align="right">
-										{item.orderQuantity * item.orderPrice}
+										{item.quantity * item.orderPrice}
+									</TableCell>
+									<TableCell align="right">
+										{item.isPacked ? "packed" : "unpacked"}
 									</TableCell>
 								</TableRow>
 							))
@@ -125,17 +183,14 @@ export default function BasicTable({ orders }) {
 						Action
 					</p>
 					<div className="flex justify-between">
-						<Button
-							type="primary"
-							// onClick={}
-						>
+						<Button type="primary" onClick={confirmOrders}>
 							Confirm Order
 						</Button>
 						<Button
 							danger
 							type="primary"
 							onClick={() =>
-								deleteSelectedTableOrders()
+								deleteSelectedTableOrders(orders[0]._id)
 							}
 						>
 							Delete Order

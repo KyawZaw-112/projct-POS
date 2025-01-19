@@ -35,16 +35,21 @@ export const orderSchema = new mongoose.Schema({
 		orderName: String,
 		orderPrice: Number,
 		orderQuantity: Number,
+		isPacked: Boolean,
+		quantity: Number,
 	}],
 	table_id: Number,
 	date: Number,
 });
 
 export const KitchenSchema = new mongoose.Schema({
-	date: String,
+	orders: [{
+		orderName: String,
+		orderPrice: Number,
+		orderQuantity: Number,
+		isPacked: Boolean,
+		quantity: Number,
+	}],
 	table_id: Number,
-	productName: String,
-	productPrice: Number,
-	productQuantity: Number,
-	productStatus: String,
+	date: Number,
 });

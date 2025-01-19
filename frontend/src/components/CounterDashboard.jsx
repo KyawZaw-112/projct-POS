@@ -5,7 +5,6 @@ import tableId, { tableBtnColor } from "../api/api";
 import InternalAuth from "./InternalAuth";
 import BasicTable from "./ui/Table";
 
-
 // import {useNavigation} from "react-router-dom"
 const CounterDashboard = () => {
 	const [orders, setOrders] = useState([]);
@@ -19,30 +18,17 @@ const CounterDashboard = () => {
 	// const navi = useNavigation()
 	const fetchOrders = async () => {
 		try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				throw new Error("No authentication token found");
-			}
-
 			const response = await axios.get(
-				"http://localhost:6060/api/orders",
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				}
+				"http://localhost:6060/api/orders"
 			);
-			// alert("success")
-
 			if (!response.data) {
 				throw new Error("No data received from server");
-				// setAuthentication(false);
 			}
 
 			setOrders(response.data);
 		} catch (err) {
 			console.error("Detailed error:", err);
 			if (err.response) {
-				// The request was made and the server responded with a status code
-				// that falls out of the range of 2xx
 				console.error("Error response:", err.response.data);
 				console.error("Error status:", err.response.status);
 				setError(
@@ -50,32 +36,23 @@ const CounterDashboard = () => {
 						err.response.data.message || "Unknown error"
 					}`
 				);
-				// console.log(authenticationError);
 
 				setAuthentication(false);
-				// navi("/login")
 			} else if (err.request) {
-				// The request was made but no response was received
 				console.error("Error request:", err.request);
 				setError("No response received from server");
 			} else {
-				// Something happened in setting up the request that triggered an Error
 				console.error("Error message:", err.message);
 				setError(`Error: ${err.message}`);
 			}
 		}
 	};
-
-
+	
 
 	useEffect(() => {
 		fetchOrders();
 	}, []);
-	
-	// const tableOrders = orders.filter(order=> console.log(order))
-	// console.log(selectedTableOrders[0].date);
-	// console.log(selectedTableOrders.id);
-	// console.log(orders)
+
 	return (
 		<>
 			{authentication ? (
@@ -126,13 +103,12 @@ const CounterDashboard = () => {
 										).toLocaleString()}
 									</p>
 									<BasicTable orders={selectedTableOrders} />
-									
 								</div>
 							) : (
 								<p>Select Table Number</p>
 							)}
 						</div>
-
+							
 						<p>{error}</p>
 					</div>
 				</section>

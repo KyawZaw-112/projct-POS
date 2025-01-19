@@ -28,8 +28,9 @@ const WaiterDashboard = () => {
 		setTableNumber,
 		tableNumber,
 		contextHolder,
+		isPacked,
+		handlePacked,
 	} = useCart();
-
 
 	const fetchProducts = async () => {
 		try {
@@ -79,32 +80,30 @@ const WaiterDashboard = () => {
 		fetchProducts();
 	}, []);
 
-	// console.log(contextHolder);
-
 	return (
 		<>
-		{contextHolder}
+			{contextHolder}
 			{error ? (
 				<InternalAuth />
 			) : (
 				<section className="flex lg:flex-row flex-col gap-4 my-10">
-					<section className="flex flex-wrap flex-col md:flex-row gap-6 flex-1 h-full justify-center">
+					<section className="flex flex-wrap flex-col md:flex-row gap-6 h-full md:w-[700px] justify-center lg:w-[900px] ">
 						{menus.map((menu) => (
 							<div
 								key={menu._id}
-								className=" border-2 gap-2 flex flex-col border-gray-300 p-4 lg:w-1/4"
+								className=" border-2 gap-5 rounded-lg flex flex-col border-gray-300 p-4 md:w-[200px] lg:w-[200px]"
 							>
 								<h2 className="text-xl font-bold ">
-									{menu.productName}
+									အမည် : {menu.productName}
 								</h2>
 								<p className="text-gray-500">
-									price :{menu.productPrice}
+									စျေးနှုန်း : {menu.productPrice}
 								</p>
 								{menu.productQuantity === 0 ? (
-									<p>out of stock</p>
+									<p className=" text-rose-600">ပစ္စည်းမရှိတော့ပါ</p>
 								) : (
 									<p className="text-gray-500">
-										quantity :{menu.productQuantity}
+										အရေအတွက် : {menu.productQuantity}
 									</p>
 								)}
 								{menu.productQuantity === 0 ? (
@@ -112,17 +111,17 @@ const WaiterDashboard = () => {
 										type="primary"
 										onClick={() => addToCart(menu)}
 										disabled
-										className="w-[50px] text-lg h-[50px] flex justify-center items-center"
+										className="w-full text-lg h-[50px] flex justify-center items-center"
 									>
-										<PiShoppingCart />
+										ဝယ်ယူမည်
 									</Button>
 								) : (
 									<Button
 										type="primary"
 										onClick={() => addToCart(menu)}
-										className="w-[50px] text-lg h-[50px] flex justify-center items-center"
+										className="w-full text-lg h-[50px] flex justify-center items-center"
 									>
-										<PiShoppingCart />
+										ဝယ်ယူမည်
 									</Button>
 								)}
 							</div>
@@ -130,12 +129,12 @@ const WaiterDashboard = () => {
 					</section>
 					{cart.length !== 0 && (
 						<>
-							<section className=" flex flex-col gap-5 md:w-1/4 w-full h-full bg-slate-300 py-6 px-3">
+							<section className=" flex flex-col gap-5 md:w-full lg:w-[800px] h-full bg-slate-300 py-6 px-3">
 								<h2 className="text-2xl font-bold text-center">
-									Cart
+									စျေးခြင်းတောင်း
 								</h2>
 								<div className="flex flex-row gap-2 px-3">
-									<label htmlFor="">Table Number : </label>
+									<label htmlFor="">ထိုင်ခုံအမှတ် : </label>
 									<InputNumber
 										min={1}
 										max={10}
@@ -154,16 +153,16 @@ const WaiterDashboard = () => {
 										<div className="flex  flex-col gap-5 justify-between px-3">
 											<div className="flex flex-row justify-between">
 												<div className="flex flex-col">
-													<p className="font-bold">
-														Name
+													<p className="font-bold mb-5">
+														အမည်
 													</p>
-													<p className=" capitalize tracking-wider">
+													<p className=" capitalize text-lg tracking-wider">
 														{item.productName}
 													</p>
 												</div>
 												<div className="flex flex-col">
-													<p className="font-bold text-center">
-														Quantity
+													<p className="font-bold mb-5 text-center">
+														အ‌ရေအတွက်
 													</p>
 													<div className="flex flex-row gap-6  items-center">
 														<Button
@@ -193,8 +192,8 @@ const WaiterDashboard = () => {
 													</div>
 												</div>
 												<div className="flex flex-col">
-													<p className="font-bold">
-														Price
+													<p className="font-bold mb-5">
+														စျေးနှုန်း
 													</p>
 													<p className="tracking-wider capitalize text-center">
 														{item.productPrice *
@@ -202,17 +201,34 @@ const WaiterDashboard = () => {
 														kyat
 													</p>
 												</div>
-											</div>
-											<div className=" flex flex-row gap-2">
-												<Button
-													type="primary"
-													// className="w-10 h-10 text-xl "
-													onClick={() =>
-														removeFromCart(item._id)
-													}
-												>
-													<FaRegTrashAlt />
-												</Button>
+												<div className="flex flex-col">
+													<p className="font-bold mb-5">
+														ပါဆယ်
+													</p>
+													<p className="tracking-wider capitalize text-center">
+														<input
+															type="checkbox"
+															value={isPacked}
+															onChange={
+																handlePacked
+															}
+														/>
+													</p>
+												</div>
+												<div className="ml-5 flex flex-col">
+													<p className="font-bold mb-5">လုပ်ဆောင်ချက်</p>
+													<Button
+														type="primary"
+														// className="w-10 h-10 text-xl "
+														onClick={() =>
+															removeFromCart(
+																item._id
+															)
+														}
+													>
+														<FaRegTrashAlt />
+													</Button>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -224,7 +240,7 @@ const WaiterDashboard = () => {
 										onClick={() => sendOrderToServer(cart)}
 										className="mx-3 text-xl py-5 tracking-wider"
 									>
-										Order
+										လုပ်ဆောင်မည်
 									</Button>
 								)}
 							</section>

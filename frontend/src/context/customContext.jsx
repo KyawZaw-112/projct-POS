@@ -7,17 +7,23 @@ export const CartProvider = ({ children }) => {
 	const [cart, setCart] = useState([]);
 	const [tableNumber, setTableNumber] = useState(null);
 	const [api, contextHolder] = notification.useNotification();
+	const [isPacked, setIsPacked] = useState(false);
+	const [order, setOrder] = useState([]);
 
 	const openNotifications = (text, placement) => {
-		api.info({
+		api.success({
 			message: `Notification`,
 			description: `${text}`,
 			placement,
+			showProgress:true,
+			pauseOnHover:false,
 		});
 	};
 
-	
-	// const [error, setError] = useState(true);
+	const handlePacked = (e) => {
+		setIsPacked(e.target.checked);
+		console.log(isPacked);
+	}
 
 	const addToCart = (product) => {
 		setCart((prevCart) => {
@@ -35,12 +41,15 @@ export const CartProvider = ({ children }) => {
 			}
 		});
 	};
+
 	const increaseQuantityAndPrice = (productId) => {
 		setCart((prevCart) => {
 			return prevCart.map((item) => {
 				if (item._id === productId) {
+					
 					const newQuantity = item.quantity + 1;
 					const newPrice = (item.price / item.quantity) * newQuantity;
+					// console.log(item.quantity);
 					return { ...item, quantity: newQuantity, price: newPrice };
 				}
 				return item;
@@ -77,18 +86,29 @@ export const CartProvider = ({ children }) => {
 		});
 	};
 
+
 	const sendOrderToServer = async () => {
 		if (!tableNumber) {
-			alert("Please select table number ");
+			// alert("Please select table number ");
+			// openNotifications(,"top")
+			const errorMessage = ()=> {
+				api.error({
+					message:"ကျေးဇူးပြုပြီး ခုံအမှတ်ရွေးပေးပါ",
+					placement:"top",
+					showProgress:true,
+                    pauseOnHover:false,
+				})
+			}
+			errorMessage()
 			return;
 		}
 		const orders = cart.map((item) => ({
 			orderName: item.productName,
 			orderQuantity: item.productQuantity,
 			orderPrice: item.productPrice,
+			isPacked:isPacked,
+			quantity:item.quantity
 		}));
-
-		// console.log(orders, tableNumber);
 
 		if (orders.length === 0) {
 			console.error("Order cannot be empty");/*  */
@@ -106,6 +126,8 @@ export const CartProvider = ({ children }) => {
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
+			openNotifications("Successful Order","top")
+			setCart([])
 		} catch (error) {
 			console.error("Error sending order to server:", error);
 		}
@@ -123,6 +145,8 @@ export const CartProvider = ({ children }) => {
 				increaseQuantityAndPrice,
 				decreaseQuantityAndPrice,
 				contextHolder,
+				isPacked,
+				handlePacked
 			}}
 		>
 			{children}

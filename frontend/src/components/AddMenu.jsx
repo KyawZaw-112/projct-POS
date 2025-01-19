@@ -90,7 +90,7 @@ const AddMenu = () => {
 			if (!token) {
 				throw new Error("No authentication token found");
 			}
-			// console.log(file);
+			console.log(file);
 			const response = await axios.post(
 				"http://localhost:6060/api/products",
 				{
