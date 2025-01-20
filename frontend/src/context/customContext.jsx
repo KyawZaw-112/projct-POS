@@ -21,9 +21,15 @@ export const CartProvider = ({ children }) => {
 	};
 
 	const handlePacked = (e) => {
-		setIsPacked(e.target.checked);
-		console.log(isPacked);
+		const isCheck  = e.target.checked;
+		const value = e.target.name;
+		// console.log();
+		
+			setIsPacked(isCheck)
+			console.log(`${value} is check ${isCheck}`);
 	}
+
+	
 
 	const addToCart = (product) => {
 		setCart((prevCart) => {

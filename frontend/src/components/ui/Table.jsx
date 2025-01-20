@@ -86,43 +86,16 @@ export default function BasicTable({ orders }) {
 
 	};
 
-	// const confirmOrders = async () => {
-	// 	const token = localStorage.getItem("token");
-	// 	const order_data = orders.map((order) => {
-	// 		return order;
-	// 	});
-	// 	if (!token) {
-	// 		throw new Error("No authentication token found");
-	// 	}
-	// 	try {
-	// 		const response = await axios.post(
-	// 			"http://localhost:6060/api/kitchen-data",
-	// 			{
-	// 				headers: { Authorization: `Bearer ${token}` },
-	// 				data: order_data,
-	// 			}
-	// 		);
-	// 		openNotification("Order confirmed successfully", "top");
-	// 	} catch (e) {
-	// 		if (e.response && e.response.status === 401) {
-	// 			openNotification("Unauthorized: Please log in again", "top"); // Handle 401 error
-	// 		} else {
-	// 			console.error(e);
-	// 			openNotification(`${e}`, "top");
-	// 		}
-	// 	}
-	// };
-
 	
 	return (
-		<>
+		<div>
 			{contextHolder}
 			<TableContainer component={Paper}>
 				<h1 className="text-xl tracking-widest my-3 mx-4 flex gap-2">
 					Table No : <p className="font-bold">{orders[0].table_id}</p>{" "}
 				</h1>{" "}
 				<h1>{orders.productName}</h1>
-				<Table sx={{ minWidth: 650 }} aria-label="simple table">
+				<Table sx={{ minWidth: 600 }} aria-label="simple table">
 					<TableHead>
 						<TableRow>
 							<TableCell>Name</TableCell>
@@ -199,6 +172,6 @@ export default function BasicTable({ orders }) {
 				</div>
 				{orders.order}
 			</TableContainer>
-		</>
+		</div>
 	);
 }

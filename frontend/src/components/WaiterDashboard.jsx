@@ -5,14 +5,19 @@ import { Button } from "antd";
 import axios from "axios";
 import { useCart } from "../context/customContext";
 import { InputNumber } from "antd";
-// import Item from "antd/es/list/Item";
-import { PiShoppingCart } from "react-icons/pi";
 import { FaPlus } from "react-icons/fa6";
-// import { MdOutlineMinusOne } from "react-icons/md";
 import { FaMinus } from "react-icons/fa6";
 import { FaRegTrashAlt } from "react-icons/fa";
 import InternalAuth from "./InternalAuth";
-
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { Card, Badge } from "antd";
+import { CiShoppingCart } from "react-icons/ci";
 const WaiterDashboard = () => {
 	const [menus, setMenus] = useState([]);
 	const [error, setError] = useState(null);
@@ -79,6 +84,7 @@ const WaiterDashboard = () => {
 		// cartFetch()
 		fetchProducts();
 	}, []);
+	console.log(menus);
 
 	return (
 		<>
@@ -87,44 +93,45 @@ const WaiterDashboard = () => {
 				<InternalAuth />
 			) : (
 				<section className="flex lg:flex-row flex-col gap-4 my-10">
-					<section className="flex flex-wrap flex-col md:flex-row gap-6 h-full md:w-[700px] justify-center lg:w-[900px] ">
+					<section className="flex flex-wrap flex-col md:flex-row gap-6 h-full md:w-[700px] justify-center lg:w-screen ">
 						{menus.map((menu) => (
-							<div
-								key={menu._id}
-								className=" border-2 gap-5 rounded-lg flex flex-col border-gray-300 p-4 md:w-[200px] lg:w-[200px]"
+							<Badge.Ribbon
+								text={menu?.productCategory}
+								color="volcano"
 							>
-								<h2 className="text-xl font-bold ">
-									အမည် : {menu.productName}
-								</h2>
-								<p className="text-gray-500">
-									စျေးနှုန်း : {menu.productPrice}
-								</p>
-								{menu.productQuantity === 0 ? (
-									<p className=" text-rose-600">ပစ္စည်းမရှိတော့ပါ</p>
-								) : (
-									<p className="text-gray-500">
-										အရေအတွက် : {menu.productQuantity}
+								<Card
+									title={menu.productName}
+									bordered={false}
+									style={{
+										width: 300,
+									}}
+									key={menu._id}
+									className=" cursor-pointer"
+								>
+									<p className=" mb-4">
+										စျေးနှုန်း : {menu.productPrice}
 									</p>
-								)}
-								{menu.productQuantity === 0 ? (
-									<Button
-										type="primary"
-										onClick={() => addToCart(menu)}
-										disabled
-										className="w-full text-lg h-[50px] flex justify-center items-center"
-									>
-										ဝယ်ယူမည်
-									</Button>
-								) : (
-									<Button
-										type="primary"
-										onClick={() => addToCart(menu)}
-										className="w-full text-lg h-[50px] flex justify-center items-center"
-									>
-										ဝယ်ယူမည်
-									</Button>
-								)}
-							</div>
+									<p className=" mb-4">Card content</p>
+									{menu.productQuantity === 0 ? (
+										<Button
+											variant="outlined"
+											onClick={() => addToCart(menu)}
+											disabled
+											className="w-[20%] text-lg h-[50px] flex justify-center items-center"
+										>
+											<CiShoppingCart />
+										</Button>
+									) : (
+										<Button
+											variant="outlined"
+											onClick={() => addToCart(menu)}
+											className="w-[20%] text-lg h-[50px] flex justify-center items-center"
+										>
+											<CiShoppingCart />
+										</Button>
+									)}
+								</Card>
+							</Badge.Ribbon>
 						))}
 					</section>
 					{cart.length !== 0 && (
@@ -145,7 +152,7 @@ const WaiterDashboard = () => {
 										placeholder="Enter table number"
 									/>
 								</div>
-								{cart.map((item) => (
+								{/* {cart.map((item) => (
 									<div
 										key={item.id}
 										className="flex flex-col gap-6 mb-5 h-ful"
@@ -208,7 +215,9 @@ const WaiterDashboard = () => {
 													<p className="tracking-wider capitalize text-center">
 														<input
 															type="checkbox"
-															value={isPacked}
+															name={
+																item.productName
+															}
 															onChange={
 																handlePacked
 															}
@@ -216,7 +225,9 @@ const WaiterDashboard = () => {
 													</p>
 												</div>
 												<div className="ml-5 flex flex-col">
-													<p className="font-bold mb-5">လုပ်ဆောင်ချက်</p>
+													<p className="font-bold mb-5">
+														လုပ်ဆောင်ချက်
+													</p>
 													<Button
 														type="primary"
 														// className="w-10 h-10 text-xl "
@@ -232,13 +243,96 @@ const WaiterDashboard = () => {
 											</div>
 										</div>
 									</div>
-								))}
+								))} */}
+								<TableContainer component={Paper}>
+									<Table
+										sx={{ minWidth: 650 }}
+										aria-label="simple table"
+									>
+										<TableHead>
+											<TableRow>
+												<TableCell>အမည်</TableCell>
+												<TableCell align="left">
+													အရေအတွက်
+												</TableCell>
+												<TableCell align="right">
+													‌‌စျေးနှုန်း
+												</TableCell>
+												<TableCell align="right">
+													လုပ်ဆောင်ချက်
+												</TableCell>
+											</TableRow>
+										</TableHead>
+										<TableBody>
+											{cart.map((row) => (
+												<TableRow
+													key={row._id}
+													sx={{
+														"&:last-child td, &:last-child th":
+															{ border: 0 },
+													}}
+												>
+													<TableCell
+														component="th"
+														scope="row"
+													>
+														{row.productName}
+													</TableCell>
+													<TableCell align="center">
+														<div className="flex flex-row gap-6  items-center">
+															<Button
+																type="primary"
+																onClick={() =>
+																	increaseQuantityAndPrice(
+																		row._id
+																	)
+																}
+															>
+																<FaPlus />
+															</Button>
+															<p className="tracking-wider capitalize text-center">
+																{row.quantity}
+															</p>
+															<Button
+																type="primary"
+																onClick={() =>
+																	decreaseQuantityAndPrice(
+																		row._id
+																	)
+																}
+																// className="w-5 text-sm"
+															>
+																<FaMinus />
+															</Button>
+														</div>
+													</TableCell>
+													<TableCell align="right">
+														{row.productPrice}
+													</TableCell>
+													<TableCell align="right">
+														<Button
+															type="primary"
+															danger
+															onClick={() =>
+																removeFromCart(
+																	row._id
+																)
+															}
+														>
+															<FaRegTrashAlt />
+														</Button>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</TableContainer>
 								{cart.length > 0 && (
 									<Button
 										type="primary"
 										// onClick={() => sendOrder()}
 										onClick={() => sendOrderToServer(cart)}
-										className="mx-3 text-xl py-5 tracking-wider"
+										className="mx-3 py-4 px-3 tracking-wider w-[150px] h-[40px] text-base"
 									>
 										လုပ်ဆောင်မည်
 									</Button>

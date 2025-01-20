@@ -140,15 +140,6 @@ const AddMenu = () => {
 		}
 	};
 
-	// console.log(
-	// 	productName,
-	// 	productPrice,
-	// 	productQuantity,
-	// 	"Prodyvy :",
-	// 	productCategory,
-	// 	"file",
-	// 	file
-	// );
 
 	return (
 		<div className="flex justify-center items-center h-[80vh] ">
@@ -183,11 +174,6 @@ const AddMenu = () => {
 						<option value="Dessert">Dessert</option>
 						<option value="Other">Other</option>
 					</select>
-					<input
-						type="file"
-						id=""
-						onChange={(e) => setFile(e.target.files[0])}
-					/>
 					<Button type="primary" htmlType="submit">
 						Add Product
 					</Button>

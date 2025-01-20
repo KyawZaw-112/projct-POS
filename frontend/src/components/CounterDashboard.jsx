@@ -89,7 +89,7 @@ const CounterDashboard = () => {
 							</div>
 							{error}
 						</div>
-						<div className="w-1/2 h-full ">
+						<div className="w-[700px] h-full ">
 							<h1 className="text-2xl font-semibold mb-2">
 								Orders
 							</h1>
