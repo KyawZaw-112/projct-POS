@@ -85,7 +85,7 @@ app.post("/api/register", async (req, res) => {
 });
 
 const checkRole = (roles) => (req, res, next) => {
-	const userRole = req.user.role;
+	const userRole = req.user;
 	if (roles.includes(userRole)) {
 		next();
 	} else {
@@ -174,10 +174,10 @@ app.get("/api/kitchen-data", async (req, res) => {
 		});
 	}
 });
+app.use(authenticate);
 
 app.post(
 	"/api/products",
-	upload.single("file"),
 	authenticate,
 	async (req, res, next) => {
 		if (req.user.role !== "counter") {
@@ -185,7 +185,8 @@ app.post(
 				.status(403)
 				.json({ message: "Access denied. Counter role required." });
 		}
-
+		console.log(req.user.role);
+		
 		try {
 			const {
 				productName,
@@ -196,7 +197,6 @@ app.post(
 
 			// const {productImage} = req.file
 
-			console.log(req.file);
 
 			// Validate input
 			if (
@@ -230,6 +230,8 @@ app.post(
 				message: "Product added successfully",
 				product: newProduct,
 			});
+
+			res.status(500).json({ message: "This is 500" });
 			// console.log(productImage);
 		} catch (error) {
 			console.error("Error adding:", error);
@@ -237,8 +239,6 @@ app.post(
 		}
 	}
 );
-
-app.use(authenticate);
 
 //counter post the kitchen data
 app.post(
@@ -366,9 +366,6 @@ app.delete(
 		}
 	}
 );
-
-
-
 
 
 // Error handling middleware
