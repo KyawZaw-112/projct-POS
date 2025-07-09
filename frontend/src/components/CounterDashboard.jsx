@@ -4,10 +4,11 @@ import { Button, Card } from "antd";
 import tableId, { tableBtnColor } from "../api/api";
 import InternalAuth from "./InternalAuth";
 import BasicTable from "./ui/Table";
+import {useCart} from "../context/customContext.jsx";
 
 // import {useNavigation} from "react-router-dom"
 const CounterDashboard = () => {
-	const [orders, setOrders] = useState([]);
+	const {orders,fetchOrders} = useCart()
 	const [error, setError] = useState(null);
 	const [tables, setTables] = useState([]);
 	const [selectedTable, setSelectedTable] = useState(null);
@@ -16,38 +17,7 @@ const CounterDashboard = () => {
 	// const [api, contextHolder] = notification.useNotification();
 
 	// const navi = useNavigation()
-	const fetchOrders = async () => {
-		try {
-			const response = await axios.get(
-				"http://localhost:6060/api/orders"
-			);
-			if (!response.data) {
-				throw new Error("No data received from server");
-			}
 
-			setOrders(response.data);
-		} catch (err) {
-			console.error("Detailed error:", err);
-			if (err.response) {
-				console.error("Error response:", err.response.data);
-				console.error("Error status:", err.response.status);
-				setError(
-					`Server error: ${err.response.status} - ${
-						err.response.data.message || "Unknown error"
-					}`
-				);
-
-				setAuthentication(false);
-			} else if (err.request) {
-				console.error("Error request:", err.request);
-				setError("No response received from server");
-			} else {
-				console.error("Error message:", err.message);
-				setError(`Error: ${err.message}`);
-			}
-		}
-	};
-	
 
 	useEffect(() => {
 		fetchOrders();
@@ -56,19 +26,19 @@ const CounterDashboard = () => {
 	return (
 		<>
 			{authentication ? (
-				<section className="mt-10">
+				<section className="mt-10 h-screen">
 					<div className="flex flex-row items-start">
 						{/* <Calculator/> */}
 						{/* <h1 className="text-4xl font-bold">Order List</h1> */}
-						<div className="mt-4 w-1/2">
-							<h2 className="text-2xl font-semibold mb-2">
+						<div className=" w-1/2">
+							<h2 className="text-2xl font-semibold mb-8 text-[#EFEFEF]">
 								Tables
 							</h2>
 							<div className="flex flex-wrap gap-2">
 								{tableId.map((id) => (
 									<Card
 										key={id}
-										className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 w-40 h-40 text-center text-2xl scale:100 hover:scale-110 transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center font-bold tracking-wider hover:shadow-lg"
+										className="px-4 py-2 bg-blue-500 select-none text-white rounded hover:bg-blue-600 w-40 h-40 text-center text-2xl scale:100 hover:scale-110 transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center font-bold tracking-wider hover:shadow-lg"
 										onClick={() => {
 											const tableOrders = orders.filter(
 												(order) =>
@@ -90,13 +60,13 @@ const CounterDashboard = () => {
 							{error}
 						</div>
 						<div className="w-[700px] h-full ">
-							<h1 className="text-2xl font-semibold mb-2">
+							<h1 className="text-2xl font-semibold mb-2 text-[#EFEFEF]">
 								Orders
 							</h1>
 							{selectedTableOrders &&
 							selectedTableOrders.length > 0 ? (
-								<div className="mt-4 p-4 w-full">
-									<p>
+								<div className=" w-full">
+									<p className={"text-[#EFEFEF] my-4"}>
 										Date:{" "}
 										{new Date(
 											selectedTableOrders[0].date
@@ -105,7 +75,7 @@ const CounterDashboard = () => {
 									<BasicTable orders={selectedTableOrders} />
 								</div>
 							) : (
-								<p>Select Table Number</p>
+								<p className={"text-[#EFEFEF] text-xl font-bold tracking-wider"}>Select Table Number</p>
 							)}
 						</div>
 							

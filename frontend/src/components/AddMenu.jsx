@@ -3,6 +3,7 @@ import axios from "axios";
 import { Button, Divider, Flex, Form, Input, notification, Space } from "antd";
 import { Select, Tag } from "antd";
 import { categories } from "../api/api";
+import {useNavigate} from "react-router-dom";
 
 const tagRender = (props) => {
 	const [data, setData] = useState([]);
@@ -40,6 +41,7 @@ const AddMenu = () => {
 	const [file, setFile] = useState();
 
 	const [api, contextHolder] = notification.useNotification();
+	const nav = useNavigate()
 
 	const openNotification = (text, placement) => {
 		api.info({
@@ -141,24 +143,32 @@ const AddMenu = () => {
 	};
 
 
+
+
 	return (
-		<div className="flex justify-center items-center h-[80vh] ">
+		<div className="flex justify-center items-center h-[92.2vh] relative">
+
 			{contextHolder}
+
+			<Button className={"absolute top-12 right-0"} onClick={()=>nav(-1)}>Back</Button>
 			<form className="w-1/3" onSubmit={handleSubmit}>
 				{/* <legend>Add Menu</legend> */}
-				<Flex vertical gap={13}>
-					<h1 className="text-2xl font-bold text-center">Add Menu</h1>
+				<Flex vertical gap={13} className={"items-center"}>
+					<h1 className="text-2xl font-bold text-center text-[#EFEFEF] tracking-wider">Add Menu</h1>
 					<Input
+						className="w-2/3 h-12"
 						value={productName}
 						onChange={(e) => setProductName(e.target.value)}
 						placeholder="Product Name"
 					/>
 					<Input
+						className="w-2/3 h-12"
 						value={productPrice}
 						onChange={(e) => setProductPrice(e.target.value)}
 						placeholder="Product Price"
 					/>
 					<Input
+						className="w-2/3 h-12"
 						value={productQuantity}
 						onChange={(e) => setProductQuantity(e.target.value)}
 						placeholder="Product Quantity"
@@ -167,18 +177,17 @@ const AddMenu = () => {
 					<select
 						placeholder="Select Category"
 						onChange={(e) => setProductCategory(e.target.value)}
-						className="border px-3 py-3 rounded-lg"
+						className="border px-3 py-3 rounded-lg w-2/3"
 					>
 						<option value="Food">Food</option>
 						<option value="Drink">Drink</option>
 						<option value="Dessert">Dessert</option>
 						<option value="Other">Other</option>
 					</select>
-					<Button type="primary" htmlType="submit">
+					<Button type="primary" className={"w-2/3 h-12 text-xl"} htmlType="submit">
 						Add Product
 					</Button>
 				</Flex>
-				<p>{error}</p>
 			</form>
 		</div>
 	);

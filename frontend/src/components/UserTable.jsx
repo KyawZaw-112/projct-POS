@@ -180,7 +180,7 @@ const UserTable = () => {
 	);
 
 	return (
-		<section className="my-10 mx-4">
+		<section className="my-10 mx-4 h-screen">
 			{contextHolder}
 			<div className="w-full flex flex-row justify-between my-5">
 				<Button onClick={handleClearFilters}>Clear Filters</Button>

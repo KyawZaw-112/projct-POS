@@ -5,10 +5,14 @@ import { notification } from "antd";
 
 export const CartProvider = ({ children }) => {
 	const [cart, setCart] = useState([]);
-	const [tableNumber, setTableNumber] = useState(null);
+	const [tableNumber, setTableNumber] = useState();
 	const [api, contextHolder] = notification.useNotification();
 	const [isPacked, setIsPacked] = useState(false);
-	const [order, setOrder] = useState([]);
+	const [notifications, setNotifications] = useState([]);
+	const [orders, setOrders] = useState([]);
+	const [error, setError] = useState(null);
+	const [kitchenDatas, setKitchenDatas] = useState([]);
+	const [authentication, setAuthentication] = useState(true);
 
 	const openNotifications = (text, placement) => {
 		api.success({
@@ -28,8 +32,6 @@ export const CartProvider = ({ children }) => {
 			setIsPacked(isCheck)
 			console.log(`${value} is check ${isCheck}`);
 	}
-
-	
 
 	const addToCart = (product) => {
 		setCart((prevCart) => {
@@ -92,14 +94,13 @@ export const CartProvider = ({ children }) => {
 		});
 	};
 
-
 	const sendOrderToServer = async () => {
 		if (!tableNumber) {
 			// alert("Please select table number ");
 			// openNotifications(,"top")
 			const errorMessage = ()=> {
 				api.error({
-					message:"ကျေးဇူးပြုပြီး ခုံအမှတ်ရွေးပေးပါ",
+					message:"Please choose the table number.",
 					placement:"top",
 					showProgress:true,
                     pauseOnHover:false,
@@ -127,7 +128,7 @@ export const CartProvider = ({ children }) => {
 			}
 			const response = await axios.post(
 				"http://localhost:6060/api/orders",
-				{ orders, tableNumber: tableNumber, date: Date.now() },
+				{ orders, tableNumber, date: Date.now() },
 				{
 					headers: { Authorization: `Bearer ${token}` },
 				}
@@ -139,7 +140,159 @@ export const CartProvider = ({ children }) => {
 		}
 	};
 
-	return (
+	const fetchNotifications = async () => {
+		try {
+			const token = localStorage.getItem("token");
+			if (!token) {
+				throw new Error("No authentication token found");
+			}
+
+			const response = await axios.get(
+				"http://localhost:6060/api/notifications",
+				{
+					headers: {Authorization: `Bearer ${token}`},
+				}
+			);
+
+			if (!response.data) {
+				throw new Error("No data received from server");
+			}
+			setNotifications(response.data);
+		} catch (err) {
+			console.error("Detailed error:", err);
+			if (err.response) {
+				// The request was made and the server responded with a status code
+				// that falls out of the range of 2xx
+				console.error("Error response:", err.response.data);
+				console.error("Error status:", err.response.status);
+				setError(
+					`Server error: ${err.response.status} - ${
+						err.response.data.message || "Unknown error"
+					}`
+				);
+			} else if (err.request) {
+				// The request was made but no response was received
+				console.error("Error request:", err.request);
+				setError("No response received from server");
+			} else {
+				// Something happened in setting up the request that triggered an Error
+				console.error("Error message:", err.message);
+				setError(`Error: ${err.message}`);
+			}
+		}
+	};
+
+	const sendNotificationToWaiter = async({ kitchenData }) => {
+
+		const token = localStorage.getItem("token");
+		try {
+			const response = await axios.post("http://localhost:6060/api/notifications",
+				{
+					kitchenData:kitchenData
+				},
+				{
+					headers: {Authorization: `Bearer ${token}`},
+				}
+			)
+			alert("Notification sent successfully!")
+
+		}catch(error) {
+			console.error("Error sending notification to server:", error.message);
+		}
+	}
+
+	const fetchKitchenData = async () => {
+		try {
+			const token = localStorage.getItem("token");
+			const response = await axios.get(
+				"http://localhost:6060/api/kitchen-data",
+				{
+					headers: {Authorization: `Bearer ${token}`},
+				}
+			);
+			if (!response.data) {
+				throw new Error("No data received from server");
+			}
+
+			setKitchenDatas(response.data);
+		} catch (err) {
+			console.error("Detailed error:", err);
+			if (err.response) {
+				console.error("Error response:", err.response.data);
+				console.error("Error status:", err.response.status);
+				setError(
+					`Server error: ${err.response.status} - ${
+						err.response.data.message || "Unknown error"
+					}`
+				);
+
+				setAuthentication(false);
+			} else if (err.request) {
+				console.error("Error request:", err.request);
+				setError("No response received from server");
+			} else {
+				console.error("Error message:", err.message);
+				setError(`Error: ${err.message}`);
+			}
+		}
+	};
+
+	const deleteNotification = async (notiId) => {
+		try {
+			const token = localStorage.getItem("token");
+			if (!token) {
+				throw new Error("Token is missing");
+			}
+
+			const response = axios.delete("http://localhost:6060/api/delete/notification",
+				{
+					headers: {Authorization: `Bearer ${token}`},
+					data: {notiId}
+				});
+			alert("Successfully deleted notification");
+			window.location.reload();
+
+		} catch (err) {
+			console.log(err);
+		}
+
+	}
+
+	const fetchOrders = async () => {
+		try {
+			const response = await axios.get(
+				"http://localhost:6060/api/orders"
+			);
+			if (!response.data) {
+				throw new Error("No data received from server");
+			}
+
+			setOrders(response.data);
+		} catch (err) {
+			console.error("Detailed error:", err);
+			if (err.response) {
+				console.error("Error response:", err.response.data);
+				console.error("Error status:", err.response.status);
+				setError(
+					`Server error: ${err.response.status} - ${
+						err.response.data.message || "Unknown error"
+					}`
+				);
+
+				setAuthentication(false);
+			} else if (err.request) {
+				console.error("Error request:", err.request);
+				setError("No response received from server");
+			} else {
+				console.error("Error message:", err.message);
+				setError(`Error: ${err.message}`);
+			}
+		}
+	};
+
+	//counter confirm order to send kitchen
+
+		return (
 		<CartContext.Provider
 			value={{
 				cart,
@@ -152,7 +305,15 @@ export const CartProvider = ({ children }) => {
 				decreaseQuantityAndPrice,
 				contextHolder,
 				isPacked,
-				handlePacked
+				handlePacked,
+				notifications,
+				fetchNotifications,
+				sendNotificationToWaiter,
+				fetchKitchenData,
+				kitchenDatas,
+				deleteNotification,
+				orders,
+				fetchOrders
 			}}
 		>
 			{children}

@@ -23,6 +23,9 @@ importers:
       axios:
         specifier: ^1.7.7
         version: 1.7.7
+      flowbit:
+        specifier: ^0.1.0
+        version: 0.1.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -856,6 +859,9 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  bignumber.js@9.3.0:
+    resolution: {integrity: sha512-EM7aMFTXbptt/wZdMlBv2t8IViwQL+h6SLHosp8Yf0dqJMTnY6iL32opnAB6kAdL0SZPuvcAzFr31o0c/R3/RA==}
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
@@ -1179,6 +1185,9 @@ packages:
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
+
+  flowbit@0.1.0:
+    resolution: {integrity: sha512-EOwR5lzgjz9zU1E2qFr7c5KemyKtfjpqTxTeU+0BDF1xW/CeTA1INOJyVROLTtqGwyiwO/5MqHvXp1yP0a6S2Q==}
 
   follow-redirects@1.15.6:
     resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
@@ -3171,6 +3180,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  bignumber.js@9.3.0: {}
+
   binary-extensions@2.3.0: {}
 
   brace-expansion@1.1.11:
@@ -3622,6 +3633,10 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.1: {}
+
+  flowbit@0.1.0:
+    dependencies:
+      bignumber.js: 9.3.0
 
   follow-redirects@1.15.6: {}
 

@@ -16,6 +16,7 @@ const AuthForm = ({ onLoginSuccess }) => {
             );
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.role);
+            localStorage.setItem("username", response.data.username);
             onLoginSuccess(response.data.role);
         } catch (error) {
             setMessage(error.response?.data?.message );
@@ -23,16 +24,16 @@ const AuthForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10">
+        <div className="max-w-md mx-auto mt-10 h-[90.2vh]">
+            <form onSubmit={handleSubmit} className="space-y-4 flex flex-col w-[80%] mx-auto">
             <h2 className="text-2xl font-bold mb-5">Login</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Username"
                     required
-                    className="w-full px-3 py-2 border rounded"
+                    className=" px-3 py-2 border rounded"
                 />
                 <input
                     type="password"
@@ -40,11 +41,11 @@ const AuthForm = ({ onLoginSuccess }) => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
                     required
-                    className="w-full px-3 py-2 border rounded"
+                    className=" px-3 py-2 border rounded"
                 />
                 <button
                     type="submit"
-                    className="w-full bg-blue-500 text-white py-2 rounded"
+                    className=" bg-blue-500 text-white py-2 rounded"
                 >
                     Login
                 </button>

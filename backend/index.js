@@ -8,8 +8,9 @@ import {
 	userSchema,
 	menuSchema,
 	orderSchema,
-	KitchenSchema,
+	KitchenSchema, NotiSchema,
 } from "./schema/schema.js";
+import error from "multer/lib/multer-error.js";
 const app = express();
 
 app.use(express.json());
@@ -32,6 +33,8 @@ const OrderModel = mongoose.model("orders", orderSchema);
 
 const KitchenModel = mongoose.model("kitchens", KitchenSchema);
 
+const NotiModel = mongoose.model("noti", NotiSchema);
+
 const storage = multer.diskStorage({
 	destination: (req, file, callback) => {
 		callback(null, "public/menu_images");
@@ -53,14 +56,14 @@ app.post("/api/login", async (req, res) => {
 				.json({ message: "Invalid username or password" });
 		}
 		const token = jwt.sign(
-			{ id: user._id, role: user.role },
+			{ id: user._id, role: user.role,username: user.username },
 			"your_jwt_secret",
 			{ expiresIn: "10h" }
 		);
-		res.json({ token, role: user.role });
+		res.json({ token, role: user.role,username: user.username });
+
 	} catch (error) {
 		res.status(500).json({ message: error.message });
-		console.log(error);
 	}
 });
 
@@ -79,8 +82,7 @@ app.post("/api/register", async (req, res) => {
 		await newUser.save();
 		res.status(201).json({ message: "User created successfully" });
 	} catch (error) {
-		// res.status(500).json({ message: error.message });
-		console.log(error);
+		res.status(500).json({ message: error.message });
 	}
 });
 
@@ -95,10 +97,9 @@ const checkRole = (roles) => (req, res, next) => {
 
 const authenticate = (req, res, next) => {
 	const token = req.headers.authorization?.split(" ")[1]; // Bearer TOKEN
-	// console.log(req.user.role);
 	
 	if (!token) {
-		console.log("No token provided");
+
 		return res.status(401).json({ message: "No token provided" });
 	}
 
@@ -142,9 +143,7 @@ app.get("/api/orders", async (req, res) => {
 	try {
 		const orders = await OrderModel.find();
 		res.status(200).json(orders);
-		// console.log(orders);
 	} catch (e) {
-		// console.log(e);
 		res.status(500).json("Something went wrong");
 	}
 });
@@ -174,6 +173,18 @@ app.get("/api/kitchen-data", async (req, res) => {
 		});
 	}
 });
+
+app.get("/api/notifications", async (req, res) => {
+	try {
+		const notifications = await NotiModel.find();
+		res.status(200).json(notifications);
+	}catch (e) {
+		res.status(500).json({
+			message: "Failed to fetch notifications",
+			error: error.message,
+		})
+	}
+})
 app.use(authenticate);
 
 app.post(
@@ -185,7 +196,6 @@ app.post(
 				.status(403)
 				.json({ message: "Access denied. Counter role required." });
 		}
-		console.log(req.user.role);
 		
 		try {
 			const {
@@ -194,10 +204,6 @@ app.post(
 				productQuantity,
 				productCategory,
 			} = req.body;
-
-			// const {productImage} = req.file
-
-
 			// Validate input
 			if (
 				!productName ||
@@ -232,7 +238,6 @@ app.post(
 			});
 
 			res.status(500).json({ message: "This is 500" });
-			// console.log(productImage);
 		} catch (error) {
 			console.error("Error adding:", error);
 			next(); // Pass error to error handling middleware
@@ -245,9 +250,6 @@ app.post(
 	"/api/counter",
 	authenticate,
 	async (req, res, next) => {
-		
-		// console.log(req.user.role);
-		// console.log("Decoded User:", req.user);
 		if (req.user.role !== "counter") {
 			return res
 				.status(403)
@@ -264,8 +266,9 @@ app.post(
 			const kitchenDocument = {
 				orders: order_data[0].orders,
 				table_id: order_data[0].table_id,
+				date: order_data[0].date,
 			}
-			console.log(kitchenDocument);
+			console.log(order_data)
 			await KitchenModel.create(kitchenDocument);
 			res.status(201).json({ message: "Kitchen data saved successfully" }); 
 		}catch (e) {
@@ -296,7 +299,6 @@ app.post(
 			if (!orders) {
 				return res.status(400).json({ error: "Invalid request data" });
 			}
-			console.log(orders);
 			if (!tableNumber) {
 				return res.status(400).json({ error: "Invalid table number" });
 			}
@@ -306,7 +308,6 @@ app.post(
 				table_id: tableNumber,
 				date: Date.now(),
 			};
-			console.log(req.user.role);
 			await OrderModel.create(orderDocument); // Save the single order document
 			res.status(201).json({ message: "Order created successfully" });
 		} catch (error) {
@@ -315,6 +316,22 @@ app.post(
 		}
 	}
 );
+
+app.post("/api/notifications", authenticate, async (req, res) => {
+	try{
+		const {kitchenData} = req.body;
+		const notiDocument = {
+			kitchenData: kitchenData,
+			table_id: kitchenData.table_id,
+			orders: kitchenData.orders,
+		}
+		console.log(notiDocument);
+		await NotiModel.create(notiDocument);
+		res.status(201).json({message:"Notification Created Successfully"});
+	}catch (e) {
+		res.status(500).json({error:"Failed to create notification"})
+	}
+})
 
 app.delete("/api/users/:id", authenticate, async (req, res) => {
 	try {
@@ -343,19 +360,17 @@ app.delete(
 		}
 		try {
 			const { orderId } = req.body;
-			console.log("Received order ID for deletion:", orderId);
 
 			const deletedOrder = await OrderModel.findByIdAndDelete(orderId);
+			const deleteKitchen = await KitchenModel.findByIdAndDelete(orderId)
 
 			if (!deletedOrder) {
 				return res.status(404).json({ message: "Order not found" });
 			}
-
-			console.log("Deleted order:", deletedOrder);
-
 			res.status(200).json({
 				message: "Order deleted successfully",
 				deletedOrder,
+				deleteKitchen,
 			});
 		} catch (error) {
 			console.error("Error in order deletion route:", error);
@@ -366,6 +381,27 @@ app.delete(
 		}
 	}
 );
+
+app.delete("/api/delete/notification", authenticate, async (req, res) => {
+	if (req.user.role !== "waiter") {
+		return res.status(403).json({ message: "Access denied. Waiter role required." });
+	}
+	try {
+		const {notiId} = req.body
+		const deleteNot = await NotiModel.findByIdAndDelete(notiId);
+
+		if (!deleteNot) {
+			return res.status(404).json({ message: "Not found" });
+		}
+		res.status(200).json({
+			message: "Notification Deleted",
+			deleteNot
+		})
+
+	}catch (e){
+		res.status(500).json({message: "Failed to delete notification"})
+	}
+})
 
 
 // Error handling middleware

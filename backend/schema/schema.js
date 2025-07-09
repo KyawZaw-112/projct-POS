@@ -1,55 +1,65 @@
 import mongoose from "mongoose";
 
 export const userSchema = new mongoose.Schema({
-	username: String,
-	password: String,
-	role: {
-		type: String,
-		enum: ["admin", "counter", "waiter", "kitchen"],
-		required: true,
-	},
+    username: String,
+    password: String,
+    role: {
+        type: String,
+        enum: ["admin", "counter", "waiter", "kitchen"],
+        required: true,
+    },
 });
 
 export const menuSchema = new mongoose.Schema({
-	productName: String,
-	productPrice: Number,
-	productDescription: String,
-	productImage: String,
-	productCategory: {
-		type: String,
-		enum: ["Food", "Drink", "Dessert", "Other"],
-		required: true,
-	},
-	productAvailability: Boolean,
-	productQuantity: Number,
-	productPrice: Number,
-	productStatus: String,
-	productDate: Date,
-	productTime: Date,
-	productLocation: String,
-	productRating: Number,
+    productName: String,
+    productDescription: String,
+    productImage: String,
+    productCategory: {
+        type: String,
+        enum: ["Food", "Drink", "Dessert", "Other"],
+        required: true,
+    },
+    productAvailability: Boolean,
+    productQuantity: Number,
+    productPrice: Number,
+    productStatus: String,
+    productDate: Date,
+    productTime: Date,
+    productLocation: String,
+    productRating: Number,
 });
 
 export const orderSchema = new mongoose.Schema({
-	orders: [{
-		orderName: String,
-		orderPrice: Number,
-		orderQuantity: Number,
-		isPacked: Boolean,
-		quantity: Number,
-	}],
-	table_id: Number,
-	date: Number,
+    orders: [{
+        orderName: String,
+        orderPrice: Number,
+        orderQuantity: Number,
+        isPacked: Boolean,
+        quantity: Number,
+    }],
+    table_id: Number,
+    date: Number,
 });
 
 export const KitchenSchema = new mongoose.Schema({
-	orders: [{
-		orderName: String,
-		orderPrice: Number,
-		orderQuantity: Number,
-		isPacked: Boolean,
-		quantity: Number,
-	}],
-	table_id: Number,
-	date: Number,
+    orders: [{
+        orderName: String,
+        orderPrice: Number,
+        orderQuantity: Number,
+        isPacked: Boolean,
+        quantity: Number,
+    }],
+    table_id: Number,
+    date: Number,
 });
+
+export const NotiSchema = new mongoose.Schema({
+    orders: [
+        {
+            orderName: String,
+            orderPrice: Number,
+            quantity: Number
+        },
+    ],
+    table_id: Number
+})

@@ -65,7 +65,7 @@ const OverviewAdmin = () => {
 	console.log("users", userCount);
 	console.log("orders", orderCount);
 	return (
-		<div className="">
+		<div className=" h-screen">
 			<Row gutter={16}>
 				<Col span={6}>
 					<Card bordered={true} hoverable onClick={()=>navigate('/admin/users')}>

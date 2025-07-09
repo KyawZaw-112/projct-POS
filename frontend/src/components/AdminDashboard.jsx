@@ -1,5 +1,4 @@
 import React from "react";
-import UserTable from "./UserTable";
 import OverviewAdmin from "./OverviewAdmin";
 
 const AdminDashboard = () => {

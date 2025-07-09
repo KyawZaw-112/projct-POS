@@ -10,6 +10,7 @@ import { TableFooter } from "@mui/material";
 import { Button } from "antd";
 import axios from "axios";
 import { notification } from "antd";
+import {useCart} from "../../context/customContext.jsx";
 
 export default function BasicTable({ orders }) {
 	const [api, contextHolder] = notification.useNotification();
@@ -22,15 +23,12 @@ export default function BasicTable({ orders }) {
 		});
 	};
 
-	// console.log(orders[0]._id);
-
 	const deleteSelectedTableOrders = async (orderId) => {
 		try {
 			const token = localStorage.getItem("token");
 			if (!token) {
 				throw new Error("No authentication token found");
 			}
-			console.log(orderId);
 
 			const response = await axios.delete(
 				"http://localhost:6060/api/selected-table-orders",
@@ -51,8 +49,9 @@ export default function BasicTable({ orders }) {
 		} catch (err) {
 			console.error("Error deleting order:", err);
 		}
-		console.log(orderId);
+		window.location.reload();
 	};
+
 	const totalPrice = orders[0].orders.reduce(
 		(sum, order) => sum + order.quantity * order.orderPrice,
 		0
@@ -72,20 +71,19 @@ export default function BasicTable({ orders }) {
 			const response = await axios.post(
 				"http://localhost:6060/api/counter",
 				{
-                    order_data: order_data,
-                },
+					order_data: order_data,
+				},
 				{
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			)
-            openNotification(`success`,"top");
+			openNotification(`success`,"top");
 		}catch(e){
 			console.error(e)
-            openNotification(`${e}`,"top");
+			openNotification(`${e}`,"top");
 		}
 
 	};
-
 	
 	return (
 		<div>
@@ -152,9 +150,6 @@ export default function BasicTable({ orders }) {
 					</TableFooter>
 				</Table>
 				<div className="my-4 mx-4">
-					<p className="my-3 font-bold text-xl text-gray-500">
-						Action
-					</p>
 					<div className="flex justify-between">
 						<Button type="primary" onClick={confirmOrders}>
 							Confirm Order
