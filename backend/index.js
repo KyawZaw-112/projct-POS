@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 mongoose
-	.connect("mongodb://localhost:27017/menu_db")
+	.connect("mongodb+srv://holeokyawzawwin_db_user:5TZ2iVyYs4dvZPsf@test.raw48ts.mongodb.net/menu_db")
 	.then(() => {
 		console.log("Connected to MongoDB");
 	})
@@ -191,7 +191,8 @@ app.post(
 	"/api/products",
 	authenticate,
 	async (req, res, next) => {
-		if (req.user.role !== "counter") {
+        console.log(req.user.role)
+        if (req.user.role !== "counter") {
 			return res
 				.status(403)
 				.json({ message: "Access denied. Counter role required." });

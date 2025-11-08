@@ -242,7 +242,7 @@ const WaiterDashboard = () => {
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <p className={"text-[#EC5228]"}>
-                                                            {row.productPrice}
+                                                            {row.productPrice * row.quantity}
                                                         </p>
                                                     </TableCell>
                                                     <TableCell align="center">
