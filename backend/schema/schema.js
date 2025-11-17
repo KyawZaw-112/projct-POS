@@ -61,5 +61,6 @@ export const NotiSchema = new mongoose.Schema({
             quantity: Number
         },
     ],
-    table_id: Number
+    table_id: Number,
+    date: Number,
 })
