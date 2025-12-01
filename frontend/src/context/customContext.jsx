@@ -132,6 +132,7 @@ export const CartProvider = ({ children }) => {
 			if (!token) {
 				throw new Error("No authentication token found");
 			}
+            //comment
             socket.emit("order", {orders: JSON.stringify(orders)})
 			const response = await axios.post(
 				"http://localhost:6060/api/orders",
